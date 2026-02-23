@@ -257,7 +257,7 @@
     </div>
 
     <!-- HUMAN CAPITAL INVESTMENTS -->
-    <div class="panel-section">
+    <div class="panel-section" id="tip-human-capital">
       <div class="section-title">🧠 Human Capital Investment</div>
       <div class="section-desc">Allocate budget (₱ Billion/year) to build your nation's capabilities.</div>
 
@@ -296,7 +296,7 @@
     </div>
 
     <!-- WORKFORCE ALLOCATION -->
-    <div class="panel-section">
+    <div class="panel-section" id="tip-workforce">
       <div class="section-title">👷 Workforce Allocation (%)
         <span class="tip-icon" data-tip="Distribute your total labor force across 7 industries. Each worker produces GDP based on their industry's output rate. Technology pays the most (₱28B/M workers). Agriculture employs the most people. Total should equal 100% — any surplus auto-goes to Services.">ⓘ</span>
       </div>
@@ -307,7 +307,7 @@
     </div>
 
     <!-- TRADE POLICY -->
-    <div class="panel-section">
+    <div class="panel-section" id="tip-trade-fiscal">
       <div class="section-title">🌍 Trade & Fiscal Policy</div>
 
       <div class="slider-group">
@@ -330,7 +330,7 @@
     </div>
 
     <!-- BOTTOM LEVEL BARS -->
-    <div class="panel-section">
+    <div class="panel-section" id="tip-national-levels">
       <div class="section-title">📡 National Levels</div>
       <div id="level-bars">
         <div class="level-row">
@@ -411,10 +411,10 @@
     </div>
 
     <div class="guide-tabs">
-      <button class="gtab active" onclick="showTab('basics')">🎯 Basics</button>
-      <button class="gtab" onclick="showTab('controls')">🎛️ Controls</button>
-      <button class="gtab" onclick="showTab('economy')">📊 Economy</button>
-      <button class="gtab" onclick="showTab('winning')">🏆 Winning</button>
+      <button class="gtab active" onclick="showTab('basics',this)">🎯 Basics</button>
+      <button class="gtab" onclick="showTab('controls',this)">🎛️ Controls</button>
+      <button class="gtab" onclick="showTab('economy',this)">📊 Economy</button>
+      <button class="gtab" onclick="showTab('winning',this)">🏆 Winning</button>
     </div>
 
     <!-- TAB: BASICS -->
