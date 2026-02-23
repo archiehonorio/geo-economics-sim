@@ -469,7 +469,13 @@ function endGame(win, title, body) {
 function renderAll(emp) {
   const fmt  = n => n >= 1000 ? (n / 1000).toFixed(2) + 'T' : n.toFixed(1) + 'B';
   const fmtP = n => n.toFixed(1) + '%';
-  const fmtM = n => (n / 1_000_000).toFixed(2) + 'M';
+  // Smart population formatter: shows 120M or 1.2B cleanly
+  const fmtPop = n => {
+    if (n >= 1_000_000_000) return (n / 1_000_000_000).toFixed(2) + 'B';
+    if (n >= 1_000_000)     return (n / 1_000_000).toFixed(1) + 'M';
+    return n.toLocaleString();
+  };
+  const fmtM = fmtPop; // reuse same smart formatter for worker counts
 
   // ── Top bar ──────────────────────────────────────────
   document.getElementById('hdr-year').textContent  = gs.year;
@@ -744,3 +750,87 @@ window.addEventListener('DOMContentLoaded', () => {
   10. NARRATIVE EVENTS: Story-based branching events with choices
       (e.g., "Foreign company wants to build a factory — allow?").
 ══════════════════════════════════════════════════════════ */
+
+// ─────────────────────────────────────────────────────────
+// TOOLTIP SYSTEM
+// Shows contextual help on hover for any element with data-tip
+// ─────────────────────────────────────────────────────────
+(function initTooltips() {
+  const box = document.getElementById('tooltip-box');
+  if (!box) return;
+
+  let hideTimer;
+
+  function showTip(e) {
+    const target = e.currentTarget;
+    const text   = target.dataset.tip;
+    if (!text) return;
+    clearTimeout(hideTimer);
+    box.textContent = text;
+    box.classList.add('visible');
+    moveTip(e);
+  }
+
+  function moveTip(e) {
+    const pad  = 14;
+    const bw   = box.offsetWidth  || 260;
+    const bh   = box.offsetHeight || 80;
+    let x      = e.clientX + pad;
+    let y      = e.clientY + pad;
+    if (x + bw > window.innerWidth)  x = e.clientX - bw - pad;
+    if (y + bh > window.innerHeight) y = e.clientY - bh - pad;
+    box.style.left = x + 'px';
+    box.style.top  = y + 'px';
+  }
+
+  function hideTip() {
+    hideTimer = setTimeout(() => box.classList.remove('visible'), 80);
+  }
+
+  // Attach to elements once DOM is loaded — use event delegation
+  document.addEventListener('mouseover', e => {
+    const el = e.target.closest('[data-tip]');
+    if (el) {
+      el._tipHandler = el._tipHandler || true;
+      showTip({ currentTarget: el, clientX: e.clientX, clientY: e.clientY });
+    }
+  });
+  document.addEventListener('mousemove', e => {
+    if (box.classList.contains('visible')) moveTip(e);
+  });
+  document.addEventListener('mouseout', e => {
+    const el = e.target.closest('[data-tip]');
+    if (el) hideTip();
+  });
+})();
+
+// ─────────────────────────────────────────────────────────
+// GUIDE MODAL CONTROLS
+// ─────────────────────────────────────────────────────────
+function openGuide() {
+  document.getElementById('guide-overlay').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeGuide() {
+  document.getElementById('guide-overlay').classList.add('hidden');
+  document.body.style.overflow = '';
+}
+
+// Close guide when clicking the backdrop
+document.addEventListener('DOMContentLoaded', () => {
+  const overlay = document.getElementById('guide-overlay');
+  if (overlay) {
+    overlay.addEventListener('click', e => {
+      if (e.target === overlay) closeGuide();
+    });
+  }
+});
+
+// Tab switcher for the guide
+function showTab(tabId) {
+  document.querySelectorAll('.guide-tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.gtab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + tabId).classList.add('active');
+  event.currentTarget.classList.add('active');
+}
