@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Geo-Economics Simulator</title>
+  <link rel="stylesheet" href="style.css" />
+  <!-- Google Fonts: Rajdhani (display) + Source Serif 4 (body) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Source+Serif+4:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════
+     TOP BAR
+═══════════════════════════════════════════════════ -->
+<header id="topbar">
+  <div id="topbar-left">
+    <span id="game-title">🌏 GEO-ECONOMICS SIMULATOR</span>
+    <span id="country-badge">🇵🇭 Republic of the Philippines</span>
+  </div>
+  <div id="topbar-right">
+    <div class="stat-chip">
+      <span class="chip-label">YEAR</span>
+      <span class="chip-value" id="hdr-year">2025</span>
+    </div>
+    <div class="stat-chip">
+      <span class="chip-label">GDP</span>
+      <span class="chip-value" id="hdr-gdp">—</span>
+    </div>
+    <div class="stat-chip">
+      <span class="chip-label">SCORE</span>
+      <span class="chip-value" id="hdr-score">—</span>
+    </div>
+    <div class="stat-chip pulse-chip" id="hdr-status-chip">
+      <span class="chip-value" id="hdr-status">STABLE</span>
+    </div>
+  </div>
+</header>
+
+<!-- ═══════════════════════════════════════════════════
+     MAIN LAYOUT
+═══════════════════════════════════════════════════ -->
+<main id="app">
+
+  <!-- LEFT PANEL: Map + Key Stats -->
+  <aside id="left-panel">
+
+    <div id="map-container">
+      <div id="map-label">Philippines</div>
+      <!-- SVG Map (simplified Philippines outline) -->
+      <svg id="ph-map" viewBox="0 0 220 520" xmlns="http://www.w3.org/2000/svg">
+        <!-- Luzon -->
+        <path class="island active-island" id="luzon"
+          d="M100,20 L130,30 L155,55 L165,90 L160,130 L150,155 L140,170
+             L145,185 L155,200 L150,220 L135,230 L125,245 L120,260
+             L110,255 L95,240 L85,220 L80,200 L85,180 L75,160
+             L65,140 L60,110 L65,80 L75,55 L90,35 Z"
+        />
+        <!-- Visayas cluster -->
+        <ellipse class="island" cx="145" cy="300" rx="22" ry="12" />
+        <ellipse class="island" cx="115" cy="315" rx="16" ry="9" />
+        <ellipse class="island" cx="160" cy="320" rx="18" ry="10" />
+        <ellipse class="island" cx="130" cy="335" rx="20" ry="10" />
+        <ellipse class="island" cx="155" cy="345" rx="12" ry="7" />
+        <!-- Mindanao -->
+        <path class="island" id="mindanao"
+          d="M100,370 L130,362 L158,368 L175,385 L178,410
+             L170,435 L155,455 L135,465 L115,465 L95,455
+             L80,440 L75,415 L80,395 L90,378 Z"
+        />
+        <!-- Palawan (long diagonal island) -->
+        <rect class="island" x="42" y="270" width="22" height="90" rx="10"
+              transform="rotate(-25 53 315)" />
+      </svg>
+
+      <!-- Competitiveness overlay gauge -->
+      <div id="map-score-ring">
+        <svg viewBox="0 0 80 80">
+          <circle cx="40" cy="40" r="34" fill="none" stroke="#1a2a3a" stroke-width="7"/>
+          <circle cx="40" cy="40" r="34" fill="none" stroke="#00e5ff" stroke-width="7"
+                  stroke-dasharray="213.5" stroke-dashoffset="213.5"
+                  id="score-arc" stroke-linecap="round"
+                  transform="rotate(-90 40 40)"/>
+          <text x="40" y="44" text-anchor="middle" id="score-ring-text"
+                font-size="14" fill="#fff" font-family="Rajdhani" font-weight="700">0</text>
+        </svg>
+        <div id="score-ring-label">COMPETITIVENESS</div>
+      </div>
+    </div>
+
+    <!-- Key KPI Cards -->
+    <div id="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-icon">👥</div>
+        <div class="kpi-body">
+          <div class="kpi-label">Population</div>
+          <div class="kpi-value" id="kpi-pop">—</div>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon">💼</div>
+        <div class="kpi-body">
+          <div class="kpi-label">Employed</div>
+          <div class="kpi-value" id="kpi-emp">—</div>
+        </div>
+      </div>
+      <div class="kpi-card warn-kpi">
+        <div class="kpi-icon">⚠️</div>
+        <div class="kpi-body">
+          <div class="kpi-label">Unemployed</div>
+          <div class="kpi-value" id="kpi-unemp">—</div>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon">📊</div>
+        <div class="kpi-body">
+          <div class="kpi-label">GDP (₱ Billion)</div>
+          <div class="kpi-value" id="kpi-gdp">—</div>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon">🏦</div>
+        <div class="kpi-body">
+          <div class="kpi-label">Budget (₱ B)</div>
+          <div class="kpi-value" id="kpi-budget">—</div>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon">💸</div>
+        <div class="kpi-body">
+          <div class="kpi-label">Debt (% GDP)</div>
+          <div class="kpi-value" id="kpi-debt">—</div>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon">📦</div>
+        <div class="kpi-body">
+          <div class="kpi-label">Trade Balance</div>
+          <div class="kpi-value" id="kpi-trade">—</div>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon">📉</div>
+        <div class="kpi-body">
+          <div class="kpi-label">Neg. GDP Years</div>
+          <div class="kpi-value" id="kpi-negyr">—</div>
+        </div>
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- CENTER PANEL: Controls -->
+  <section id="center-panel">
+
+    <div id="turn-header">
+      <div>
+        <div id="turn-year-big" class="section-title">YEAR <span id="year-display">2025</span></div>
+        <div id="turn-subtitle">Annual Policy Dashboard</div>
+      </div>
+      <button id="next-year-btn" onclick="nextYear()">
+        ▶ ADVANCE YEAR
+      </button>
+    </div>
+
+    <!-- HUMAN CAPITAL INVESTMENTS -->
+    <div class="panel-section">
+      <div class="section-title">🧠 Human Capital Investment</div>
+      <div class="section-desc">Allocate budget (₱ Billion/year) to build your nation's capabilities.</div>
+
+      <div class="slider-group">
+        <label>🎓 Education Investment
+          <span class="slider-val" id="val-edu">10</span> B
+          <span class="level-badge" id="lv-edu">LV 0</span>
+        </label>
+        <input type="range" min="0" max="60" value="10" id="sl-edu"
+               oninput="updateSliderLabel('sl-edu','val-edu')" />
+        <div class="progress-bar"><div class="progress-fill edu-fill" id="bar-edu"></div></div>
+      </div>
+
+      <div class="slider-group">
+        <label>🏗️ Infrastructure Investment
+          <span class="slider-val" id="val-infra">8</span> B
+          <span class="level-badge" id="lv-infra">LV 0</span>
+        </label>
+        <input type="range" min="0" max="60" value="8" id="sl-infra"
+               oninput="updateSliderLabel('sl-infra','val-infra')" />
+        <div class="progress-bar"><div class="progress-fill infra-fill" id="bar-infra"></div></div>
+      </div>
+
+      <div class="slider-group">
+        <label>💡 Technology Investment
+          <span class="slider-val" id="val-tech">5</span> B
+          <span class="level-badge" id="lv-tech">LV 0</span>
+        </label>
+        <input type="range" min="0" max="60" value="5" id="sl-tech"
+               oninput="updateSliderLabel('sl-tech','val-tech')" />
+        <div class="progress-bar"><div class="progress-fill tech-fill" id="bar-tech"></div></div>
+      </div>
+    </div>
+
+    <!-- WORKFORCE ALLOCATION -->
+    <div class="panel-section">
+      <div class="section-title">👷 Workforce Allocation (%)</div>
+      <div class="section-desc">Distribute your labor force across industries. Total must equal 100%.</div>
+
+      <div id="industry-sliders"></div>
+      <div id="alloc-warning" class="alloc-warn hidden">⚠ Allocation ≠ 100% — difference applied to Services</div>
+    </div>
+
+    <!-- TRADE POLICY -->
+    <div class="panel-section">
+      <div class="section-title">🌍 Trade & Fiscal Policy</div>
+
+      <div class="slider-group">
+        <label>📤 Export Drive (0 = Autarky, 100 = Open)
+          <span class="slider-val" id="val-export">50</span>
+        </label>
+        <input type="range" min="0" max="100" value="50" id="sl-export"
+               oninput="updateSliderLabel('sl-export','val-export')" />
+      </div>
+
+      <div class="slider-group">
+        <label>💰 Government Spending (% of budget)
+          <span class="slider-val" id="val-gov">40</span>%
+        </label>
+        <input type="range" min="10" max="90" value="40" id="sl-gov"
+               oninput="updateSliderLabel('sl-gov','val-gov')" />
+      </div>
+    </div>
+
+    <!-- BOTTOM LEVEL BARS -->
+    <div class="panel-section">
+      <div class="section-title">📡 National Levels</div>
+      <div id="level-bars">
+        <div class="level-row">
+          <span class="level-name">Education</span>
+          <div class="level-track"><div class="level-fill edu-fill" id="lvbar-edu"></div></div>
+          <span class="level-num" id="lvnum-edu">0</span>
+        </div>
+        <div class="level-row">
+          <span class="level-name">Infrastructure</span>
+          <div class="level-track"><div class="level-fill infra-fill" id="lvbar-infra"></div></div>
+          <span class="level-num" id="lvnum-infra">0</span>
+        </div>
+        <div class="level-row">
+          <span class="level-name">Technology</span>
+          <div class="level-track"><div class="level-fill tech-fill" id="lvbar-tech"></div></div>
+          <span class="level-num" id="lvnum-tech">0</span>
+        </div>
+        <div class="level-row">
+          <span class="level-name">Stability</span>
+          <div class="level-track"><div class="level-fill stab-fill" id="lvbar-stab"></div></div>
+          <span class="level-num" id="lvnum-stab">0</span>
+        </div>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- RIGHT PANEL: Log + Events -->
+  <aside id="right-panel">
+
+    <div class="panel-section" id="event-box">
+      <div class="section-title">🌐 World Event</div>
+      <div id="event-name" class="event-name">—</div>
+      <div id="event-desc" class="event-desc">Press "Advance Year" to start simulation.</div>
+      <div id="event-effect" class="event-effect"></div>
+    </div>
+
+    <div class="panel-section" id="report-box">
+      <div class="section-title">📋 Annual Report</div>
+      <div id="report-content">
+        <p class="report-placeholder">Your annual economic summary will appear here after each turn.</p>
+      </div>
+    </div>
+
+    <div class="panel-section" id="log-box">
+      <div class="section-title">📜 History Log</div>
+      <div id="log-list"></div>
+    </div>
+
+  </aside>
+
+</main>
+
+<!-- ═══════════════════════════════════════════════════
+     MODAL (Win / Lose / Event)
+═══════════════════════════════════════════════════ -->
+<div id="modal-overlay" class="hidden">
+  <div id="modal-card">
+    <div id="modal-icon">🏆</div>
+    <div id="modal-title">Victory!</div>
+    <div id="modal-body">You have built a globally competitive nation.</div>
+    <button id="modal-btn" onclick="resetGame()">PLAY AGAIN</button>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
