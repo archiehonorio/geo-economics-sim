@@ -1,12 +1,320 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>🇵🇭 PH Nation Builder</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fira+Mono:wght@500&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="style.css"/>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<title>🇵🇭 PH Nation Builder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Barlow:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg:     #080c10;
+  --bg2:    #0e1520;
+  --bg3:    #141d2b;
+  --bg4:    #1a2438;
+  --border: #1e2d42;
+  --border2:#263548;
+  --cyan:   #00d4ff;
+  --cyan2:  #0099cc;
+  --green:  #00e676;
+  --green2: #00c853;
+  --amber:  #ffab00;
+  --red:    #ff3d3d;
+  --purple: #aa80ff;
+  --pink:   #ff6090;
+  --orange: #ff8a00;
+  --text:   #c8d8f0;
+  --text2:  #6a8aaa;
+  --text3:  #3a5570;
+  --white:  #e8f4ff;
+  --r:      6px;
+  --edu:    #00d4ff;
+  --inf:    #ff8a00;
+  --tec:    #00e676;
+  --soc:    #aa80ff;
+  --mil:    #ff3d3d;
+  --agr:    #69d66b;
+  --dip:    #ffab00;
+  --hea:    #ff6090;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;font-size:14px;line-height:1.5;min-height:100vh;overflow-x:hidden}
+button{cursor:pointer;font-family:inherit}
+a{color:var(--cyan)}
+
+/* Grid scanline overlay */
+body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,212,255,0.015) 2px,rgba(0,212,255,0.015) 4px);pointer-events:none;z-index:0}
+
+/* ─── HEADER ─── */
+#header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;padding:10px 16px;background:linear-gradient(180deg,rgba(0,212,255,0.08) 0%,var(--bg2) 100%);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:200}
+#header::before{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--cyan),transparent)}
+#header-left{display:flex;align-items:center;gap:10px}
+#flag{font-size:1.8rem;filter:drop-shadow(0 0 8px rgba(0,212,255,0.5))}
+#game-name{font-family:'Rajdhani',sans-serif;font-size:1.3rem;font-weight:700;color:var(--white);letter-spacing:0.1em;text-transform:uppercase}
+#game-sub{font-size:0.68rem;color:var(--text2);letter-spacing:0.15em;text-transform:uppercase}
+#header-right{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.hstat{background:rgba(0,212,255,0.05);border:1px solid var(--border);border-radius:var(--r);padding:4px 10px;text-align:center;min-width:60px}
+.hstat-label{font-size:0.55rem;font-weight:700;letter-spacing:0.15em;color:var(--text3);text-transform:uppercase}
+.hstat-val{font-family:'Share Tech Mono',monospace;font-size:0.95rem;font-weight:700;color:var(--white)}
+.hstat-val small{font-size:0.6em;color:var(--text2)}
+.guide-btn{background:rgba(0,212,255,0.1);border:1px solid rgba(0,212,255,0.3);color:var(--cyan);font-weight:600;font-size:0.78rem;padding:6px 12px;border-radius:var(--r);letter-spacing:0.05em;transition:all .2s}
+.guide-btn:hover{background:rgba(0,212,255,0.2);box-shadow:0 0 12px rgba(0,212,255,0.3)}
+
+/* ─── TABS (mobile nav) ─── */
+#mobile-tabs{display:none;background:var(--bg2);border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none}
+#mobile-tabs::-webkit-scrollbar{display:none}
+.mtab-bar{display:flex;gap:0;min-width:max-content}
+.mtab{background:transparent;border:none;color:var(--text2);font-size:0.75rem;font-weight:600;padding:10px 16px;border-bottom:2px solid transparent;letter-spacing:0.05em;text-transform:uppercase;transition:all .2s;white-space:nowrap}
+.mtab.active{color:var(--cyan);border-bottom-color:var(--cyan)}
+
+/* ─── APP LAYOUT ─── */
+#app{display:grid;grid-template-columns:270px 1fr 250px;gap:0;min-height:calc(100vh - 54px);position:relative;z-index:1}
+#panel-left,#panel-right{padding:12px;overflow-y:auto;border-right:1px solid var(--border)}
+#panel-right{border-right:none;border-left:1px solid var(--border)}
+#panel-center{padding:12px;overflow-y:auto;background:var(--bg)}
+
+/* ─── CARDS ─── */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;margin-bottom:10px;position:relative;overflow:hidden}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,rgba(0,212,255,0.2),transparent)}
+.card-title{font-family:'Rajdhani',sans-serif;font-size:0.8rem;font-weight:700;letter-spacing:0.15em;color:var(--cyan);text-transform:uppercase;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px}
+.card-desc{font-size:0.75rem;color:var(--text2);margin-bottom:8px}
+
+/* ─── INFO BUTTON ─── */
+.info-btn{background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.25);color:var(--cyan);font-size:0.65rem;padding:1px 6px;border-radius:20px;cursor:pointer;margin-left:auto;transition:all .2s;letter-spacing:0.05em}
+.info-btn:hover{background:rgba(0,212,255,0.2)}
+
+/* ─── NATION GRID ─── */
+#nation-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.nstat{display:flex;align-items:center;gap:7px;background:var(--bg3);border:1px solid var(--border);border-radius:5px;padding:7px 8px;transition:border-color .3s}
+.nstat-icon{font-size:1.2rem;flex-shrink:0}
+.nstat-label{font-size:0.58rem;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:0.08em}
+.nstat-val{font-family:'Share Tech Mono',monospace;font-size:0.88rem;font-weight:700;color:var(--white)}
+.nstat-warn .nstat-val{color:var(--amber)}
+.nstat-crit .nstat-val{color:var(--red) !important}
+.nstat-good .nstat-val{color:var(--green) !important}
+
+/* ─── LEVEL BARS ─── */
+.lrow{display:grid;grid-template-columns:100px 1fr 34px;align-items:center;gap:6px;margin-bottom:7px}
+.lname{font-size:0.73rem;color:var(--text)}
+.ltrack{height:6px;background:var(--bg3);border-radius:3px;overflow:hidden}
+.lfill{height:100%;border-radius:3px;transition:width .5s ease}
+.edu-col{background:var(--edu);box-shadow:0 0 6px rgba(0,212,255,0.4)}
+.inf-col{background:var(--inf);box-shadow:0 0 6px rgba(255,138,0,0.4)}
+.tec-col{background:var(--tec);box-shadow:0 0 6px rgba(0,230,118,0.4)}
+.sta-col{background:var(--soc);box-shadow:0 0 6px rgba(170,128,255,0.4)}
+.mil-col{background:var(--mil);box-shadow:0 0 6px rgba(255,61,61,0.4)}
+.dip-col{background:var(--dip);box-shadow:0 0 6px rgba(255,171,0,0.4)}
+.lnum{font-family:'Share Tech Mono',monospace;font-size:0.78rem;font-weight:700;color:var(--white);text-align:right}
+
+/* WIN BAR */
+#win-wrap{margin-top:12px;padding-top:10px;border-top:1px solid var(--border)}
+#win-label-row{display:flex;justify-content:space-between;font-size:0.73rem;color:var(--text2);margin-bottom:5px}
+#win-nums{font-family:'Share Tech Mono',monospace;font-weight:700;color:var(--amber)}
+#win-track{position:relative;height:9px;background:var(--bg3);border-radius:5px;overflow:visible;margin-bottom:4px}
+#win-fill{height:100%;border-radius:5px;transition:width .6s ease}
+#win-goal{position:absolute;top:-4px;height:18px;width:2px;background:var(--amber);border-radius:1px;left:85%;box-shadow:0 0 6px var(--amber)}
+#win-caption{font-size:0.65rem;color:var(--text2);text-align:center}
+
+/* ─── MAP ─── */
+#ph-map{width:110px;flex-shrink:0;filter:drop-shadow(0 0 10px rgba(0,212,255,0.3))}
+.isle{fill:#0f2a40;stroke:rgba(0,212,255,0.3);stroke-width:1.2;transition:fill .3s}
+.active-isle{fill:#1a4060;stroke:var(--cyan);stroke-width:1.8}
+.map-lbl{font-family:'Rajdhani',sans-serif;font-size:8px;fill:rgba(0,212,255,0.5);font-weight:700;letter-spacing:1px}
+#map-wrap{display:flex;gap:10px;align-items:flex-start}
+#map-overlay{flex:1;display:flex;flex-direction:column;gap:5px}
+.mo-row{display:flex;justify-content:space-between;align-items:center;background:var(--bg3);border:1px solid var(--border);border-radius:5px;padding:4px 7px;font-size:0.68rem}
+.mo-row span:first-child{color:var(--text2)}
+.mo-row span:last-child{font-family:'Share Tech Mono',monospace;font-weight:700;color:var(--white)}
+
+/* ─── TURN BANNER ─── */
+#turn-banner{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:12px;padding:12px 14px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r)}
+#turn-title{font-family:'Rajdhani',sans-serif;font-size:1.05rem;font-weight:700;color:var(--white);letter-spacing:0.05em}
+#turn-title span{color:var(--amber)}
+#turn-sub{font-size:0.7rem;color:var(--text2);margin-top:2px;letter-spacing:0.05em}
+#btn-advance{background:linear-gradient(135deg,var(--green),#00b848);color:#050e05;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:1rem;padding:9px 22px;border:none;border-radius:var(--r);letter-spacing:0.1em;text-transform:uppercase;transition:all .2s;box-shadow:0 0 20px rgba(0,230,118,0.3)}
+#btn-advance:hover{transform:translateY(-1px);box-shadow:0 0 28px rgba(0,230,118,0.5)}
+#btn-advance:active{transform:translateY(0)}
+
+/* ─── BUDGET SLIDERS ─── */
+#brb-wrap{height:7px;background:var(--bg3);border-radius:4px;overflow:hidden;margin-bottom:4px}
+#brb-fill{height:100%;border-radius:4px;background:var(--green);transition:width .3s,background .3s}
+.sector-grid{display:grid;grid-template-columns:1fr 1fr;gap:0}
+.bsrow{padding:9px 0;border-bottom:1px solid var(--border)}
+.bsrow:last-child{border-bottom:none}
+.bshead{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;font-size:0.79rem;color:var(--text)}
+.bsval{font-family:'Share Tech Mono',monospace;font-weight:700;color:var(--cyan);font-size:0.8rem}
+.bsdesc{font-size:0.65rem;color:var(--text2);margin-top:2px;line-height:1.3}
+
+input[type=range]{-webkit-appearance:none;width:100%;height:3px;background:var(--border);border-radius:2px;outline:none;cursor:pointer;margin:4px 0}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;cursor:pointer;box-shadow:0 0 8px currentColor;transition:transform .15s}
+input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.25)}
+#bs-edu::-webkit-slider-thumb{background:var(--edu);box-shadow:0 0 8px var(--edu)}
+#bs-inf::-webkit-slider-thumb{background:var(--inf);box-shadow:0 0 8px var(--inf)}
+#bs-tec::-webkit-slider-thumb{background:var(--tec);box-shadow:0 0 8px var(--tec)}
+#bs-soc::-webkit-slider-thumb{background:var(--soc);box-shadow:0 0 8px var(--soc)}
+#bs-mil::-webkit-slider-thumb{background:var(--mil);box-shadow:0 0 8px var(--mil)}
+#bs-agr::-webkit-slider-thumb{background:var(--agr);box-shadow:0 0 8px var(--agr)}
+#bs-dip::-webkit-slider-thumb{background:var(--dip);box-shadow:0 0 8px var(--dip)}
+#bs-hea::-webkit-slider-thumb{background:var(--hea);box-shadow:0 0 8px var(--hea)}
+
+/* ─── LEVERS ─── */
+.lev-row{margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--border)}
+.lev-row:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
+.lev-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;font-size:0.79rem;color:var(--text)}
+.lev-val{font-size:0.72rem;font-weight:700;color:var(--amber);background:rgba(255,171,0,0.08);border:1px solid rgba(255,171,0,0.25);padding:1px 7px;border-radius:20px}
+.lev-scale{display:flex;justify-content:space-between;font-size:0.6rem;color:var(--text3);margin-top:2px}
+#ls-exp::-webkit-slider-thumb{background:var(--cyan);box-shadow:0 0 6px var(--cyan)}
+#ls-ofw::-webkit-slider-thumb{background:var(--orange);box-shadow:0 0 6px var(--orange)}
+#ls-ind::-webkit-slider-thumb{background:var(--green);box-shadow:0 0 6px var(--green)}
+#ls-pol::-webkit-slider-thumb{background:var(--purple);box-shadow:0 0 6px var(--purple)}
+#ls-env::-webkit-slider-thumb{background:var(--agr);box-shadow:0 0 6px var(--agr)}
+
+/* ─── POWER ALLOCATION ─── */
+.power-intro{font-size:0.72rem;color:var(--text2);margin-bottom:10px;padding:7px 10px;background:rgba(255,61,61,0.06);border:1px solid rgba(255,61,61,0.15);border-radius:5px}
+.power-row{display:grid;grid-template-columns:90px 1fr 38px 60px;align-items:center;gap:6px;margin-bottom:8px}
+.pw-label{font-size:0.72rem;color:var(--text);font-weight:600}
+.pw-track{height:6px;background:var(--bg3);border-radius:3px;overflow:hidden}
+.pw-fill{height:100%;border-radius:3px;transition:width .4s}
+.pw-val{font-family:'Share Tech Mono',monospace;font-size:0.75rem;color:var(--white);text-align:right}
+.pw-pts{font-size:0.6rem;color:var(--text2);text-align:right}
+#power-remaining{font-size:0.72rem;text-align:center;margin-top:6px;padding:5px;border-radius:4px}
+
+/* ─── POWER SLIDERS ─── */
+input.power-slider{-webkit-appearance:none;width:100%;height:3px;background:var(--border);border-radius:2px;outline:none;cursor:pointer;margin:3px 0}
+input.power-slider::-webkit-slider-thumb{-webkit-appearance:none;width:13px;height:13px;border-radius:50%;cursor:pointer;transition:transform .15s}
+#ps-military::-webkit-slider-thumb{background:var(--red);box-shadow:0 0 6px var(--red)}
+#ps-economy::-webkit-slider-thumb{background:var(--green);box-shadow:0 0 6px var(--green)}
+#ps-diplomacy::-webkit-slider-thumb{background:var(--amber);box-shadow:0 0 6px var(--amber)}
+#ps-intel::-webkit-slider-thumb{background:var(--purple);box-shadow:0 0 6px var(--purple)}
+
+/* ─── EVENT CARD ─── */
+#ev-name{font-family:'Rajdhani',sans-serif;font-size:1.1rem;font-weight:700;color:var(--amber);margin-bottom:3px;letter-spacing:0.05em}
+#ev-effect{font-size:0.75rem;font-weight:600;color:var(--cyan);margin-top:4px}
+
+/* ─── YEAR TIMELINE ─── */
+#year-timeline{max-height:200px;overflow-y:auto}
+.yr-entry{display:flex;align-items:flex-start;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)}
+.yr-entry:last-child{border-bottom:none}
+.yr-badge{font-family:'Share Tech Mono',monospace;font-size:0.75rem;font-weight:700;padding:2px 8px;border-radius:20px;flex-shrink:0;min-width:42px;text-align:center}
+.yr-badge.good{background:rgba(0,230,118,0.15);color:var(--green);border:1px solid rgba(0,230,118,0.3)}
+.yr-badge.bad{background:rgba(255,61,61,0.15);color:var(--red);border:1px solid rgba(255,61,61,0.3)}
+.yr-badge.neutral{background:rgba(106,138,170,0.15);color:var(--text2);border:1px solid var(--border)}
+.yr-detail{font-size:0.68rem;color:var(--text2);line-height:1.4}
+.yr-detail strong{display:block;font-size:0.72rem;margin-bottom:1px}
+.yr-detail strong.good{color:var(--green)}
+.yr-detail strong.bad{color:var(--red)}
+
+/* ─── COUNTRY COMPARISON ─── */
+#country-comp{display:flex;flex-direction:column;gap:5px}
+.cc-row{display:grid;grid-template-columns:100px 1fr 38px;align-items:center;gap:7px;padding:4px 0}
+.cc-label{font-size:0.7rem;color:var(--text);display:flex;align-items:center;gap:4px}
+.cc-flag{font-size:0.9rem}
+.cc-track{height:8px;background:var(--bg3);border-radius:4px;overflow:hidden;position:relative}
+.cc-fill{height:100%;border-radius:4px;transition:width .6s ease;position:relative}
+.cc-ph{background:linear-gradient(90deg,var(--cyan),var(--green));box-shadow:0 0 8px rgba(0,212,255,0.4)}
+.cc-vn{background:rgba(210,65,65,0.7)}
+.cc-id{background:rgba(255,80,0,0.6)}
+.cc-th{background:rgba(60,150,255,0.6)}
+.cc-my{background:rgba(80,200,120,0.6)}
+.cc-sg{background:rgba(255,200,0,0.7)}
+.cc-score{font-family:'Share Tech Mono',monospace;font-size:0.72rem;font-weight:700;color:var(--white);text-align:right}
+.cc-you{animation:pulse-glow 2s infinite}
+@keyframes pulse-glow{0%,100%{filter:brightness(1)}50%{filter:brightness(1.3)}}
+.cc-header{display:flex;justify-content:space-between;font-size:0.65rem;color:var(--text3);padding-bottom:4px;border-bottom:1px solid var(--border);margin-bottom:4px;letter-spacing:0.05em;text-transform:uppercase}
+.cc-rank{font-size:0.7rem;text-align:center;margin-top:8px;padding:5px 8px;background:var(--bg3);border-radius:5px;border:1px solid var(--border)}
+
+/* ─── REPORT ─── */
+#report-body .rline{font-size:0.76rem;padding:4px 0 4px 8px;border-left:2px solid var(--border);margin-bottom:3px;line-height:1.4}
+#report-body .rline.good{border-color:var(--green);color:var(--green)}
+#report-body .rline.bad{border-color:var(--red);color:var(--red)}
+#report-body .rline.note{border-color:var(--amber);color:var(--amber)}
+#report-body .rline.head{border-color:var(--cyan);color:var(--cyan);font-weight:700;font-family:'Rajdhani',sans-serif;letter-spacing:0.05em}
+
+/* ─── ADVISOR ─── */
+#advisor-msg{font-size:0.79rem;color:var(--text);line-height:1.65;background:rgba(255,171,0,0.05);border-radius:5px;padding:10px 12px;border-left:3px solid var(--amber)}
+
+/* ─── DANGER METERS ─── */
+.danger-row{display:grid;grid-template-columns:86px 1fr 44px 60px;align-items:center;gap:5px;margin-bottom:7px}
+.dlabel{font-size:0.68rem;color:var(--text2)}
+.dtrack{height:5px;background:var(--bg3);border-radius:3px;overflow:hidden}
+.dfill{height:100%;border-radius:3px;transition:width .4s}
+.uf{background:var(--amber)}
+.df{background:var(--red)}
+.nf{background:var(--purple)}
+.pol-f{background:var(--pink)}
+.dnum{font-family:'Share Tech Mono',monospace;font-size:0.74rem;font-weight:700;color:var(--white);text-align:right}
+.dlim{font-size:0.6rem;color:var(--text3);text-align:right}
+#danger-note{font-size:0.65rem;color:var(--text3);text-align:center;margin-top:5px;padding-top:5px;border-top:1px solid var(--border)}
+
+/* ─── MODALS ─── */
+#end-overlay,#guide-overlay,#info-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;z-index:10000;backdrop-filter:blur(6px);padding:16px;overflow-y:auto}
+.hidden{display:none!important}
+
+/* END MODAL */
+#end-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:36px 32px;text-align:center;max-width:400px;width:100%;box-shadow:0 0 60px rgba(0,212,255,0.2)}
+#end-icon{font-size:3rem;margin-bottom:10px}
+#end-title{font-family:'Rajdhani',sans-serif;font-size:1.8rem;font-weight:700;color:var(--white);margin-bottom:10px;letter-spacing:0.1em}
+#end-body{font-size:0.82rem;color:var(--text2);margin-bottom:22px;line-height:1.7}
+#end-btn{background:var(--cyan);color:#05101a;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:1rem;padding:11px 30px;border:none;border-radius:var(--r);cursor:pointer;letter-spacing:0.1em;text-transform:uppercase}
+
+/* GUIDE MODAL */
+#guide-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;width:100%;max-width:600px;max-height:88vh;overflow-y:auto}
+#guide-hdr{display:flex;justify-content:space-between;align-items:center;padding:16px 18px 0;margin-bottom:12px}
+#guide-title{font-family:'Rajdhani',sans-serif;font-size:1.2rem;font-weight:700;color:var(--white);letter-spacing:0.1em}
+.close-btn{background:var(--bg3);border:1px solid var(--border);color:var(--text2);font-size:0.85rem;padding:4px 10px;border-radius:5px;cursor:pointer;transition:color .2s}
+.close-btn:hover{color:var(--red)}
+.gtabs{display:flex;flex-wrap:wrap;gap:5px;padding:0 18px 12px;border-bottom:1px solid var(--border)}
+.gtab{background:transparent;border:1px solid var(--border);color:var(--text2);font-size:0.72rem;font-weight:600;padding:5px 11px;border-radius:20px;cursor:pointer;transition:all .2s;letter-spacing:0.05em}
+.gtab:hover{color:var(--cyan);border-color:var(--cyan)}
+.gtab.active{background:rgba(0,212,255,0.15);color:var(--cyan);border-color:var(--cyan)}
+.gtab-content{display:none;padding:16px 18px}
+.gtab-content.active{display:block}
+.gtab-content h3{font-family:'Rajdhani',sans-serif;font-size:0.95rem;font-weight:700;color:var(--white);margin:14px 0 6px;letter-spacing:0.05em;text-transform:uppercase}
+.gtab-content h3:first-child{margin-top:0}
+.gtab-content p{font-size:0.79rem;color:var(--text);line-height:1.65;margin-bottom:7px}
+.ftable{border:1px solid var(--border);border-radius:5px;overflow:hidden;margin:7px 0}
+.frow{display:grid;grid-template-columns:1fr 1.5fr;gap:10px;padding:6px 11px;font-size:0.76rem;border-bottom:1px solid var(--border)}
+.frow:last-child{border-bottom:none}
+.frow b{color:var(--white);font-weight:600}
+.frow span{color:var(--text2)}
+.tip-box{background:rgba(0,230,118,0.07);border:1px solid rgba(0,230,118,0.2);border-radius:5px;padding:9px 11px;font-size:0.75rem;color:var(--green);margin-top:7px}
+
+/* INFO MODAL */
+#info-card{background:var(--bg2);border:1px solid var(--border);border-radius:9px;max-width:460px;width:100%;max-height:80vh;overflow-y:auto}
+#info-hdr{display:flex;justify-content:space-between;align-items:center;padding:13px 15px;border-bottom:1px solid var(--border)}
+#info-title{font-family:'Rajdhani',sans-serif;font-weight:700;color:var(--white);letter-spacing:0.05em}
+#info-body{padding:13px 15px;font-size:0.79rem;color:var(--text);line-height:1.7}
+#info-body b{color:var(--white)}
+#info-body p{margin-bottom:7px}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+
+/* ─── RESPONSIVE ─── */
+@media(max-width:980px){
+  #app{grid-template-columns:1fr 1fr}
+  #panel-left{grid-column:1;grid-row:1}
+  #panel-center{grid-column:2;grid-row:1}
+  #panel-right{grid-column:1/-1;grid-row:2;border-left:none;border-top:1px solid var(--border)}
+}
+@media(max-width:660px){
+  #mobile-tabs{display:block}
+  #app{grid-template-columns:1fr;display:block}
+  #panel-left,#panel-center,#panel-right{border:none;border-bottom:1px solid var(--border);display:none}
+  #panel-left.active-panel,#panel-center.active-panel,#panel-right.active-panel{display:block}
+  #header-right{gap:4px}
+  .hstat{min-width:50px;padding:3px 6px}
+  .hstat-val{font-size:0.82rem}
+  #btn-advance{width:100%;margin-top:6px}
+  #turn-banner{flex-direction:column}
+  .sector-grid{grid-template-columns:1fr}
+  .danger-row{grid-template-columns:80px 1fr 38px 50px}
+  #nation-grid{grid-template-columns:1fr 1fr}
+}
+</style>
 </head>
 <body>
 
@@ -16,33 +324,45 @@
     <span id="flag">🇵🇭</span>
     <div>
       <div id="game-name">PH Nation Builder</div>
-      <div id="game-sub">You are the President. Every decision shapes the nation.</div>
+      <div id="game-sub">You are the President. Shape the nation.</div>
     </div>
   </div>
   <div id="header-right">
     <div class="hstat"><div class="hstat-label">YEAR</div><div class="hstat-val" id="h-year">2025</div></div>
     <div class="hstat"><div class="hstat-label">SCORE</div><div class="hstat-val" id="h-score">0<small>/100</small></div></div>
+    <div class="hstat"><div class="hstat-label">RANK</div><div class="hstat-val" id="h-rank">—</div></div>
     <div class="hstat" id="hstat-status"><div class="hstat-label">STATUS</div><div class="hstat-val" id="h-status">STABLE</div></div>
     <button class="guide-btn" onclick="openGuide()">📖 Guide</button>
   </div>
 </header>
 
+<!-- MOBILE TABS -->
+<nav id="mobile-tabs">
+  <div class="mtab-bar">
+    <button class="mtab active" onclick="showPanel('left',this)">🏝️ Nation</button>
+    <button class="mtab" onclick="showPanel('center',this)">⚙️ Decisions</button>
+    <button class="mtab" onclick="showPanel('right',this)">📊 Analysis</button>
+  </div>
+</nav>
+
 <main id="app">
 
 <!-- ═══ LEFT PANEL ═══ -->
-<section id="panel-left">
+<section id="panel-left" class="active-panel">
 
   <div class="card">
     <div class="card-title">🏝️ Nation Dashboard</div>
     <div id="nation-grid">
       <div class="nstat"><div class="nstat-icon">👥</div><div><div class="nstat-label">Population</div><div class="nstat-val" id="v-pop">—</div></div></div>
-      <div class="nstat"><div class="nstat-icon">💼</div><div><div class="nstat-label">Domestic Workers</div><div class="nstat-val" id="v-work">—</div></div></div>
+      <div class="nstat"><div class="nstat-icon">💼</div><div><div class="nstat-label">Employed</div><div class="nstat-val" id="v-work">—</div></div></div>
       <div class="nstat"><div class="nstat-icon">✈️</div><div><div class="nstat-label">OFWs Abroad</div><div class="nstat-val" id="v-ofw">—</div></div></div>
-      <div class="nstat nstat-warn"><div class="nstat-icon">⚠️</div><div><div class="nstat-label">Unemployed</div><div class="nstat-val" id="v-unemp">—</div></div></div>
-      <div class="nstat"><div class="nstat-icon">📊</div><div><div class="nstat-label">GDP (₱ B)</div><div class="nstat-val" id="v-gdp">—</div></div></div>
-      <div class="nstat"><div class="nstat-icon">💵</div><div><div class="nstat-label">Remittances (₱ B)</div><div class="nstat-val" id="v-remit">—</div></div></div>
-      <div class="nstat"><div class="nstat-icon">🏦</div><div><div class="nstat-label">Gov Budget (₱ B)</div><div class="nstat-val" id="v-budget">—</div></div></div>
-      <div class="nstat"><div class="nstat-icon">💸</div><div><div class="nstat-label">Debt % GDP</div><div class="nstat-val" id="v-debt">—</div></div></div>
+      <div class="nstat" id="ns-unemp"><div class="nstat-icon">⚠️</div><div><div class="nstat-label">Unemployed</div><div class="nstat-val" id="v-unemp">—</div></div></div>
+      <div class="nstat"><div class="nstat-icon">📊</div><div><div class="nstat-label">GDP</div><div class="nstat-val" id="v-gdp">—</div></div></div>
+      <div class="nstat"><div class="nstat-icon">📈</div><div><div class="nstat-label">GDP Growth</div><div class="nstat-val" id="v-growth">—</div></div></div>
+      <div class="nstat"><div class="nstat-icon">💵</div><div><div class="nstat-label">Remittances</div><div class="nstat-val" id="v-remit">—</div></div></div>
+      <div class="nstat"><div class="nstat-icon">🏦</div><div><div class="nstat-label">Budget</div><div class="nstat-val" id="v-budget">—</div></div></div>
+      <div class="nstat" id="ns-debt"><div class="nstat-icon">💸</div><div><div class="nstat-label">Debt % GDP</div><div class="nstat-val" id="v-debt">—</div></div></div>
+      <div class="nstat"><div class="nstat-icon">🤝</div><div><div class="nstat-label">Diplomacy</div><div class="nstat-val" id="v-diprel">—</div></div></div>
     </div>
   </div>
 
@@ -52,6 +372,8 @@
     <div class="lrow"><span class="lname">🏗️ Infrastructure</span><div class="ltrack"><div class="lfill inf-col" id="lb-inf"></div></div><span class="lnum" id="ln-inf">0</span></div>
     <div class="lrow"><span class="lname">💡 Technology</span><div class="ltrack"><div class="lfill tec-col" id="lb-tec"></div></div><span class="lnum" id="ln-tec">0</span></div>
     <div class="lrow"><span class="lname">🤝 Stability</span><div class="ltrack"><div class="lfill sta-col" id="lb-sta"></div></div><span class="lnum" id="ln-sta">0</span></div>
+    <div class="lrow"><span class="lname">⚔️ Military</span><div class="ltrack"><div class="lfill mil-col" id="lb-mil"></div></div><span class="lnum" id="ln-mil">0</span></div>
+    <div class="lrow"><span class="lname">🌐 Diplomacy</span><div class="ltrack"><div class="lfill dip-col" id="lb-dip"></div></div><span class="lnum" id="ln-dip">0</span></div>
 
     <div id="win-wrap">
       <div id="win-label-row"><span>🏆 Competitiveness</span><span id="win-nums">0 / 85</span></div>
@@ -60,7 +382,7 @@
     </div>
   </div>
 
-  <div class="card" id="map-card">
+  <div class="card">
     <div class="card-title">🗺️ Philippines</div>
     <div id="map-wrap">
       <svg id="ph-map" viewBox="0 0 220 500" xmlns="http://www.w3.org/2000/svg">
@@ -87,6 +409,8 @@
         <div class="mo-row"><span>Year</span><span id="mo-year">2025</span></div>
         <div class="mo-row"><span>₱/person</span><span id="mo-gdpcap">—</span></div>
         <div class="mo-row"><span>Trade</span><span id="mo-trade">—</span></div>
+        <div class="mo-row"><span>Political</span><span id="mo-pol">—</span></div>
+        <div class="mo-row"><span>Military</span><span id="mo-mil">—</span></div>
       </div>
     </div>
   </div>
@@ -97,7 +421,10 @@
 <section id="panel-center">
 
   <div id="turn-banner">
-    <div><div id="turn-title">Year <span id="turn-year">2025</span> — Presidential Decisions</div><div id="turn-sub">Set priorities below, then advance the year.</div></div>
+    <div>
+      <div id="turn-title">Year <span id="turn-year">2025</span> — Presidential Decisions</div>
+      <div id="turn-sub">Allocate budget &amp; set policy, then advance the year.</div>
+    </div>
     <button id="btn-advance" onclick="nextYear()">▶ Next Year</button>
   </div>
 
@@ -107,31 +434,52 @@
     <div id="brb-wrap"><div id="brb-fill"></div></div>
     <div id="brb-caption" class="card-desc"></div>
 
-    <div class="bsrow">
-      <div class="bshead"><span>🎓 Education</span><span class="bsval"><span id="bv-edu">20</span> B</span></div>
-      <input type="range" min="0" max="300" step="5" value="20" id="bs-edu" oninput="onBudget()"/>
-      <div class="bsdesc">Trains smarter workers → multiplies GDP output per person</div>
-    </div>
-    <div class="bsrow">
-      <div class="bshead"><span>🏗️ Infrastructure</span><span class="bsval"><span id="bv-inf">15</span> B</span></div>
-      <input type="range" min="0" max="300" step="5" value="15" id="bs-inf" oninput="onBudget()"/>
-      <div class="bsdesc">Roads, ports, power — moves goods, lowers business costs</div>
-    </div>
-    <div class="bsrow">
-      <div class="bshead"><span>💡 Technology &amp; BPO</span><span class="bsval"><span id="bv-tec">10</span> B</span></div>
-      <input type="range" min="0" max="300" step="5" value="10" id="bs-tec" oninput="onBudget()"/>
-      <div class="bsdesc">R&amp;D + call centers = highest-paying jobs &amp; exports</div>
-    </div>
-    <div class="bsrow">
-      <div class="bshead"><span>🏥 Social Services</span><span class="bsval"><span id="bv-soc">15</span> B</span></div>
-      <input type="range" min="0" max="300" step="5" value="15" id="bs-soc" oninput="onBudget()"/>
-      <div class="bsdesc">Healthcare &amp; welfare → reduces unrest, keeps people productive</div>
+    <div class="sector-grid">
+      <div class="bsrow" style="padding-right:14px">
+        <div class="bshead"><span style="color:var(--edu)">🎓 Education</span><span class="bsval"><span id="bv-edu">20</span>B</span></div>
+        <input type="range" min="0" max="400" step="5" value="20" id="bs-edu" oninput="onBudget()"/>
+        <div class="bsdesc">Trains smarter workers, multiplies all GDP</div>
+      </div>
+      <div class="bsrow" style="padding-left:14px">
+        <div class="bshead"><span style="color:var(--inf)">🏗️ Infrastructure</span><span class="bsval"><span id="bv-inf">15</span>B</span></div>
+        <input type="range" min="0" max="400" step="5" value="15" id="bs-inf" oninput="onBudget()"/>
+        <div class="bsdesc">Roads, ports, power grids, airports</div>
+      </div>
+      <div class="bsrow" style="padding-right:14px">
+        <div class="bshead"><span style="color:var(--tec)">💡 Technology</span><span class="bsval"><span id="bv-tec">10</span>B</span></div>
+        <input type="range" min="0" max="400" step="5" value="10" id="bs-tec" oninput="onBudget()"/>
+        <div class="bsdesc">BPO, R&amp;D, digital economy</div>
+      </div>
+      <div class="bsrow" style="padding-left:14px">
+        <div class="bshead"><span style="color:var(--soc)">🏥 Social Services</span><span class="bsval"><span id="bv-soc">15</span>B</span></div>
+        <input type="range" min="0" max="400" step="5" value="15" id="bs-soc" oninput="onBudget()"/>
+        <div class="bsdesc">Healthcare, welfare, housing, jobs</div>
+      </div>
+      <div class="bsrow" style="padding-right:14px">
+        <div class="bshead"><span style="color:var(--mil)">⚔️ Military</span><span class="bsval"><span id="bv-mil">8</span>B</span></div>
+        <input type="range" min="0" max="300" step="5" value="8" id="bs-mil" oninput="onBudget()"/>
+        <div class="bsdesc">Defense, AFP, coast guard, territorial security</div>
+      </div>
+      <div class="bsrow" style="padding-left:14px">
+        <div class="bshead"><span style="color:var(--agr)">🌾 Agriculture</span><span class="bsval"><span id="bv-agr">10</span>B</span></div>
+        <input type="range" min="0" max="300" step="5" value="10" id="bs-agr" oninput="onBudget()"/>
+        <div class="bsdesc">Farmland, irrigation, food security</div>
+      </div>
+      <div class="bsrow" style="padding-right:14px">
+        <div class="bshead"><span style="color:var(--dip)">🌐 Diplomacy</span><span class="bsval"><span id="bv-dip">5</span>B</span></div>
+        <input type="range" min="0" max="200" step="5" value="5" id="bs-dip" oninput="onBudget()"/>
+        <div class="bsdesc">Foreign affairs, embassies, alliances</div>
+      </div>
+      <div class="bsrow" style="padding-left:14px">
+        <div class="bshead"><span style="color:var(--hea)">🏛️ Governance</span><span class="bsval"><span id="bv-hea">7</span>B</span></div>
+        <input type="range" min="0" max="200" step="5" value="7" id="bs-hea" oninput="onBudget()"/>
+        <div class="bsdesc">Anti-corruption, justice, institutions</div>
+      </div>
     </div>
   </div>
 
   <div class="card">
     <div class="card-title">🎛️ Economic Policy <button class="info-btn" onclick="openInfo('levers')">ⓘ</button></div>
-
     <div class="lev-row">
       <div class="lev-head"><span>📤 Trade Openness</span><span class="lev-val" id="lv-exp">Medium</span></div>
       <input type="range" min="0" max="4" step="1" value="2" id="ls-exp" oninput="onLevers()"/>
@@ -147,9 +495,50 @@
       <input type="range" min="0" max="4" step="1" value="2" id="ls-ind" oninput="onLevers()"/>
       <div class="lev-scale"><span>Agriculture</span><span>Tech / BPO</span></div>
     </div>
+    <div class="lev-row">
+      <div class="lev-head"><span>🏛️ Political System</span><span class="lev-val" id="lv-pol">Democracy</span></div>
+      <input type="range" min="0" max="4" step="1" value="2" id="ls-pol" oninput="onLevers()"/>
+      <div class="lev-scale"><span>Authoritarian</span><span>Liberal Demo</span></div>
+    </div>
+    <div class="lev-row">
+      <div class="lev-head"><span>🌿 Environment Policy</span><span class="lev-val" id="lv-env">Balanced</span></div>
+      <input type="range" min="0" max="4" step="1" value="2" id="ls-env" oninput="onLevers()"/>
+      <div class="lev-scale"><span>Exploit Resources</span><span>Green Future</span></div>
+    </div>
   </div>
 
-  <div class="card" id="event-card">
+  <!-- POWER ALLOCATION (CoN-style) -->
+  <div class="card">
+    <div class="card-title">⚡ National Power Allocation <button class="info-btn" onclick="openInfo('power')">ⓘ</button></div>
+    <div class="power-intro">Distribute 100 Power Points across pillars. More power = faster gains but exposes other areas. Like Conflict of Nations — choose your doctrine.</div>
+    <div class="power-row">
+      <span class="pw-label">⚔️ Military</span>
+      <div class="pw-track"><div class="pw-fill" id="pf-military" style="background:var(--red);width:25%"></div></div>
+      <span class="pw-val" id="pv-military">25</span>
+      <input class="power-slider" type="range" min="0" max="100" step="5" value="25" id="ps-military" oninput="onPower()"/>
+    </div>
+    <div class="power-row">
+      <span class="pw-label">💹 Economy</span>
+      <div class="pw-track"><div class="pw-fill" id="pf-economy" style="background:var(--green);width:35%"></div></div>
+      <span class="pw-val" id="pv-economy">35</span>
+      <input class="power-slider" type="range" min="0" max="100" step="5" value="35" id="ps-economy" oninput="onPower()"/>
+    </div>
+    <div class="power-row">
+      <span class="pw-label">🌐 Diplomacy</span>
+      <div class="pw-track"><div class="pw-fill" id="pf-diplomacy" style="background:var(--amber);width:25%"></div></div>
+      <span class="pw-val" id="pv-diplomacy">25</span>
+      <input class="power-slider" type="range" min="0" max="100" step="5" value="25" id="ps-diplomacy" oninput="onPower()"/>
+    </div>
+    <div class="power-row">
+      <span class="pw-label">🔍 Intelligence</span>
+      <div class="pw-track"><div class="pw-fill" id="pf-intel" style="background:var(--purple);width:15%"></div></div>
+      <span class="pw-val" id="pv-intel">15</span>
+      <input class="power-slider" type="range" min="0" max="100" step="5" value="15" id="ps-intel" oninput="onPower()"/>
+    </div>
+    <div id="power-remaining">Total: <span id="pw-total">100</span>/100</div>
+  </div>
+
+  <div class="card">
     <div class="card-title">🌐 World Event</div>
     <div id="ev-name">—</div>
     <div id="ev-desc" class="card-desc">Advance the year to see this year's global event.</div>
@@ -168,7 +557,45 @@
 
   <div class="card" id="advisor-card">
     <div class="card-title">🤵 Presidential Advisor</div>
-    <div id="advisor-msg">Welcome, Mr./Ms. President. The Philippines needs your leadership. Start by setting your budget priorities and pressing ▶ Next Year.</div>
+    <div id="advisor-msg">Welcome, Mr./Ms. President. The Philippines needs your leadership. Allocate budget, set policy, and press ▶ Next Year.</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">🌏 ASEAN Comparison</div>
+    <div class="cc-header"><span>Country</span><span>Competitiveness Score</span></div>
+    <div id="country-comp">
+      <div class="cc-row">
+        <span class="cc-label"><span class="cc-flag">🇸🇬</span> Singapore</span>
+        <div class="cc-track"><div class="cc-fill cc-sg" id="cc-sg" style="width:94%"></div></div>
+        <span class="cc-score" id="cs-sg">94</span>
+      </div>
+      <div class="cc-row">
+        <span class="cc-label"><span class="cc-flag">🇲🇾</span> Malaysia</span>
+        <div class="cc-track"><div class="cc-fill cc-my" id="cc-my" style="width:72%"></div></div>
+        <span class="cc-score" id="cs-my">72</span>
+      </div>
+      <div class="cc-row">
+        <span class="cc-label"><span class="cc-flag">🇹🇭</span> Thailand</span>
+        <div class="cc-track"><div class="cc-fill cc-th" id="cc-th" style="width:65%"></div></div>
+        <span class="cc-score" id="cs-th">65</span>
+      </div>
+      <div class="cc-row">
+        <span class="cc-label"><span class="cc-flag">🇻🇳</span> Vietnam</span>
+        <div class="cc-track"><div class="cc-fill cc-vn" id="cc-vn" style="width:52%"></div></div>
+        <span class="cc-score" id="cs-vn">52</span>
+      </div>
+      <div class="cc-row" style="background:rgba(0,212,255,0.05);border-radius:4px;padding:2px 4px">
+        <span class="cc-label cc-you"><span class="cc-flag">🇵🇭</span> <b style="color:var(--cyan)">Philippines</b></span>
+        <div class="cc-track"><div class="cc-fill cc-ph" id="cc-ph" style="width:38%"></div></div>
+        <span class="cc-score" id="cs-ph" style="color:var(--cyan)">38</span>
+      </div>
+      <div class="cc-row">
+        <span class="cc-label"><span class="cc-flag">🇮🇩</span> Indonesia</span>
+        <div class="cc-track"><div class="cc-fill cc-id" id="cc-id" style="width:48%"></div></div>
+        <span class="cc-score" id="cs-id">48</span>
+      </div>
+    </div>
+    <div class="cc-rank" id="cc-rank-box">📊 PH Rank: <strong id="cc-rank-text" style="color:var(--amber)">5th of 6</strong> — Below Indonesia</div>
   </div>
 
   <div class="card">
@@ -191,16 +618,21 @@
       <span class="dnum" id="dn-neg">—</span>
       <span class="dlim">max 3 yrs</span>
     </div>
-    <div id="danger-note">Any of these hitting the limit = Game Over</div>
+    <div class="danger-row">
+      <span class="dlabel">Political Unrest</span>
+      <div class="dtrack"><div class="dfill pol-f" id="d-pol"></div></div>
+      <span class="dnum" id="dn-pol">—</span>
+      <span class="dlim">max 80</span>
+    </div>
+    <div id="danger-note">Any danger hitting max = Game Over or Major Crisis</div>
   </div>
 
   <div class="card">
-    <div class="card-title">📜 History</div>
-    <div id="log-body"></div>
+    <div class="card-title">📜 Year Timeline</div>
+    <div id="year-timeline"></div>
   </div>
 
 </section>
-
 </main>
 
 <!-- WIN/LOSE MODAL -->
@@ -223,94 +655,71 @@
     <div class="gtabs">
       <button class="gtab active" onclick="showTab('basics',this)">🎯 Basics</button>
       <button class="gtab" onclick="showTab('budget',this)">💰 Budget</button>
-      <button class="gtab" onclick="showTab('levers',this)">🎛️ Levers</button>
+      <button class="gtab" onclick="showTab('power',this)">⚡ Power</button>
       <button class="gtab" onclick="showTab('win',this)">🏆 Win/Lose</button>
-      <button class="gtab" onclick="showTab('ph',this)">🇵🇭 PH Facts</button>
+      <button class="gtab" onclick="showTab('compare',this)">🌏 Rankings</button>
     </div>
     <div class="gtab-content active" id="tab-basics">
       <h3>What is this game?</h3>
-      <p>You are the President of the Philippines. Each turn = 1 year in office. You decide where to spend the budget and what economic policies to follow. The economy responds — sometimes with good news, sometimes with a crisis.</p>
+      <p>You are the President of the Philippines. Each turn = 1 year in office. Allocate your government budget across 8 sectors, set economic policy levers, and distribute National Power. A global event fires each turn to challenge your strategy.</p>
       <h3>Your Goal</h3>
-      <p>Reach a <strong>Competitiveness Score of 85</strong> — making the Philippines a world-class economy. This score reflects GDP per person, education, infrastructure, technology, and stability.</p>
-      <h3>Each Turn</h3>
-      <div class="steps">
-        <div class="step"><span class="sn">1</span><span>Allocate your budget across Education, Infrastructure, Technology, Social Services</span></div>
-        <div class="step"><span class="sn">2</span><span>Set your policy levers: how open is trade? How many OFWs to deploy? What industry to focus on?</span></div>
-        <div class="step"><span class="sn">3</span><span>Press ▶ Next Year — a global event fires (recession? boom? disaster?)</span></div>
-        <div class="step"><span class="sn">4</span><span>Read your Presidential Report and your Advisor's tip</span></div>
-        <div class="step"><span class="sn">5</span><span>Adjust strategy and repeat</span></div>
-      </div>
-      <h3>The Dashboard</h3>
-      <div class="ftable">
-        <div class="frow"><b>👥 Population</b><span>Total Filipinos, grows ~1.6%/year</span></div>
-        <div class="frow"><b>💼 Domestic Workers</b><span>Employed inside the country</span></div>
-        <div class="frow"><b>✈️ OFWs Abroad</b><span>Overseas workers who send money home</span></div>
-        <div class="frow"><b>💵 Remittances</b><span>Money OFWs send home — adds to GDP</span></div>
-        <div class="frow"><b>📊 GDP</b><span>Total economic output in ₱ Billions</span></div>
-        <div class="frow"><b>💸 Debt %</b><span>Government debt vs GDP — keep below 150%</span></div>
-      </div>
+      <p>Reach a <strong>Competitiveness Score of 85</strong> and surpass ASEAN rivals. Score reflects GDP per person, all national levels, trade balance, and stability.</p>
+      <h3>Year Timeline</h3>
+      <p>After each turn, your year appears <strong style="color:var(--green)">GREEN</strong> (good year) or <strong style="color:var(--red)">RED</strong> (bad year) with an explanation of what made it good or bad — just like a real presidential record.</p>
     </div>
     <div class="gtab-content" id="tab-budget">
-      <h3>💰 Budget Allocation</h3>
-      <p>Each year the government collects ~17% of GDP as taxes. You decide how to spend it. The bar at the top shows how much is left — go into the red and debt increases.</p>
+      <h3>8 Budget Sectors</h3>
       <div class="ftable">
-        <div class="frow"><b>🎓 Education</b><span>Raises Education Level → every worker produces more. Slow payoff but compounds. Invest early and heavily.</span></div>
-        <div class="frow"><b>🏗️ Infrastructure</b><span>Roads, ports, power. Faster business movement, lower costs. Levels decay — need constant investment. Critical after disasters.</span></div>
-        <div class="frow"><b>💡 Technology</b><span>BPO, R&amp;D, digital. Highest GDP per worker. Needs Education Level 40+ to work well. Push hard in mid-game.</span></div>
-        <div class="frow"><b>🏥 Social Services</b><span>Healthcare, welfare, housing. Keeps Stability high. Low social spending = unrest = lower productivity = GDP drop.</span></div>
+        <div class="frow"><b>🎓 Education</b><span>Raises workforce skill — multiplies GDP for ALL sectors. Invest early, compound late.</span></div>
+        <div class="frow"><b>🏗️ Infrastructure</b><span>Roads, ports, power. Decays without investment. Critical after typhoon events.</span></div>
+        <div class="frow"><b>💡 Technology</b><span>BPO, R&amp;D, digital. Highest GDP per worker. Needs Education 40+ to unlock full potential.</span></div>
+        <div class="frow"><b>🏥 Social Services</b><span>Healthcare, welfare. Keeps Stability and reduces unemployment drag.</span></div>
+        <div class="frow"><b>⚔️ Military</b><span>Raises Military Level. Reduces political unrest. Protects against territorial events.</span></div>
+        <div class="frow"><b>🌾 Agriculture</b><span>Food security, rural employment. Reduces unemployment in crisis years.</span></div>
+        <div class="frow"><b>🌐 Diplomacy</b><span>Raises Diplomacy level, unlocks trade deals, improves foreign relations score.</span></div>
+        <div class="frow"><b>🏛️ Governance</b><span>Anti-corruption, justice. Reduces political unrest. Multiplies efficiency of all spending.</span></div>
       </div>
-      <div class="tip-box">💡 Strategy: Year 1–5 focus on Education + Infrastructure. Year 6+ add Technology. Always keep Social Services at ₱10B minimum.</div>
+      <div class="tip-box">💡 Total budget = 17% of GDP. Going over budget = debt rises. All 8 sectors matter — spread wisely.</div>
     </div>
-    <div class="gtab-content" id="tab-levers">
-      <h3>🎛️ Economic Levers</h3>
-      <p>These are big-picture policy positions with trade-offs — not exact numbers.</p>
+    <div class="gtab-content" id="tab-power">
+      <h3>⚡ National Power — Conflict of Nations Style</h3>
+      <p>You have <strong>100 Power Points</strong> to distribute across 4 pillars every year. Higher power in an area = faster gains. But over-focusing one area weakens others.</p>
       <div class="ftable">
-        <div class="frow"><b>📤 Trade Openness</b><span>Open = more exports, higher GDP, but exposed to Trade Wars. Protectionist = safe but slow growth. Best: Level 2–3.</span></div>
-        <div class="frow"><b>✈️ OFW Policy</b><span>Deploy = big remittance income, reduces domestic unemployment. But maxing it causes Brain Drain. Best: Level 2–3, drop to 1 after Brain Drain events.</span></div>
-        <div class="frow"><b>🏭 Industry Focus</b><span>Agriculture = many jobs, low pay. Tech/BPO = fewer jobs, very high pay. Shift from 1–2 early to 3–4 once Education Level hits 50+.</span></div>
+        <div class="frow"><b>⚔️ Military Power</b><span>Boosts military level gain, reduces unrest from territorial disputes, counters invasion events</span></div>
+        <div class="frow"><b>💹 Economy Power</b><span>Multiplies GDP growth and budget efficiency. Best return in growth years.</span></div>
+        <div class="frow"><b>🌐 Diplomacy Power</b><span>Improves foreign relations, opens trade deals, reduces trade war impact</span></div>
+        <div class="frow"><b>🔍 Intelligence Power</b><span>Reduces corruption drag, detects crisis events 1 turn earlier, stabilizes political unrest</span></div>
       </div>
-      <div class="tip-box">💡 No lever is "always best" — adjust based on the event that just hit.</div>
+      <div class="tip-box">💡 Strategy: 40+ Economy early game. Balance Military + Diplomacy mid-game. Intelligence counters debt/corruption crises.</div>
     </div>
     <div class="gtab-content" id="tab-win">
       <h3>🏆 Win Condition</h3>
-      <p>Reach <strong>Competitiveness Score = 85</strong>. Score comes from:</p>
-      <div class="ftable">
-        <div class="frow"><b>GDP per capita</b><span>Up to 40 pts — grow GDP faster than population</span></div>
-        <div class="frow"><b>Education + Infra + Tech</b><span>Up to 40 pts — invest consistently</span></div>
-        <div class="frow"><b>Trade Balance</b><span>Up to 10 pts — exports &gt; imports</span></div>
-        <div class="frow"><b>Stability</b><span>Up to 10 pts — low unemployment, manageable debt</span></div>
-      </div>
+      <p>Competitiveness Score ≥ 85. Score is built from GDP per capita (40pts), national levels (40pts), trade (10pts), stability (10pts).</p>
       <h3>💀 Lose Conditions</h3>
-      <div class="ftable danger-t">
-        <div class="frow"><b>⚠️ Unemployment &gt; 25%</b><span>Don't cut Social Services; check OFW and Industry Focus</span></div>
-        <div class="frow"><b>💸 Debt &gt; 150% GDP</b><span>Cut ALL budget sliders during Recession / Pandemic years</span></div>
-        <div class="frow"><b>📉 3 straight GDP declines</b><span>Never cut Education to zero — it keeps GDP alive</span></div>
-      </div>
-      <div class="tip-box">💡 Best path to win: High Education → High Tech → shift Industry Focus to Tech/BPO → exports surge → score climbs.</div>
-    </div>
-    <div class="gtab-content" id="tab-ph">
-      <h3>🇵🇭 Real Philippines — 2025 Starting Data</h3>
       <div class="ftable">
-        <div class="frow"><b>Population</b><span>~118 million people</span></div>
-        <div class="frow"><b>Domestic labor force</b><span>~50 million workers</span></div>
-        <div class="frow"><b>OFWs abroad</b><span>~10.6 million overseas workers</span></div>
-        <div class="frow"><b>OFW Remittances</b><span>~₱1.8 Trillion/year (record 2024)</span></div>
-        <div class="frow"><b>GDP</b><span>~₱26 Trillion (2024)</span></div>
-        <div class="frow"><b>Unemployment rate</b><span>~4.5% (2024)</span></div>
-        <div class="frow"><b>Debt / GDP</b><span>~60% (2024)</span></div>
-        <div class="frow"><b>Gov Budget</b><span>~₱5.7 Trillion (2024)</span></div>
+        <div class="frow"><b>⚠️ Unemployment &gt; 25%</b><span>Mass unrest and economic collapse</span></div>
+        <div class="frow"><b>💸 Debt &gt; 150% GDP</b><span>Sovereign default — peso collapses</span></div>
+        <div class="frow"><b>📉 3 GDP Declines</b><span>Depression — never cut Education to zero</span></div>
+        <div class="frow"><b>🔴 Political Unrest &gt; 80</b><span>Coup or regime collapse — keep stability high</span></div>
       </div>
-      <h3>What is OFW Remittance?</h3>
-      <p>Overseas Filipino Workers send money back home every month. In 2024 this hit a record <strong>$38 billion USD</strong> (~₱2.1 Trillion). This money directly boosts household spending, savings, and GDP. The Philippines depends on this more than almost any other country in the world.</p>
-      <h3>What is BPO?</h3>
-      <p>Business Process Outsourcing — call centers, IT services, accounting, and back-office work done for foreign companies from the Philippines. The PH is the global #2 BPO hub, employing ~1.7 million Filipinos at above-average wages. Your Technology budget grows this sector.</p>
-      <h3>Why does this matter?</h3>
-      <p>The game simulates real economic tradeoffs the Philippines faces: how much to invest in education vs short-term employment? Should we encourage OFW deployment or build local industries? How do we compete with Vietnam and Indonesia on manufacturing? These are real presidential decisions.</p>
+    </div>
+    <div class="gtab-content" id="tab-compare">
+      <h3>🌏 ASEAN Country Scores (Fixed Reference)</h3>
+      <p>Your score is compared against 5 ASEAN countries. Surpass each one to climb the rankings!</p>
+      <div class="ftable">
+        <div class="frow"><b>🇸🇬 Singapore</b><span>94 — Very hard to beat. World-class in everything.</span></div>
+        <div class="frow"><b>🇲🇾 Malaysia</b><span>72 — Strong tech + trade. Your mid-game target.</span></div>
+        <div class="frow"><b>🇹🇭 Thailand</b><span>65 — Good infrastructure, solid stability.</span></div>
+        <div class="frow"><b>🇻🇳 Vietnam</b><span>52 — Fast-growing manufacturing hub.</span></div>
+        <div class="frow"><b>🇮🇩 Indonesia</b><span>48 — Large economy but high debt and unemployment.</span></div>
+        <div class="frow"><b>🇵🇭 Philippines</b><span>Starts at 38 — must reach 85 to win!</span></div>
+      </div>
+      <div class="tip-box">🎯 First beat Indonesia (48), then Vietnam (52), then Thailand (65), then Malaysia (72). You don't need to beat Singapore — just reach 85.</div>
     </div>
   </div>
 </div>
 
-<!-- INFO MODAL (ⓘ buttons) -->
+<!-- INFO MODAL -->
 <div id="info-overlay" class="hidden" onclick="if(event.target===this)closeInfo()">
   <div id="info-card">
     <div id="info-hdr"><div id="info-title">Info</div><button class="close-btn" onclick="closeInfo()">✕</button></div>
@@ -318,6 +727,768 @@
   </div>
 </div>
 
-<script src="script.js"></script>
+<script>
+/* ═══════════════════════════════════════════════════
+   PH Nation Builder v2 — Fully Featured
+═══════════════════════════════════════════════════ */
+
+const START = {
+  population:     118_000_000,
+  ofwCount:        10_600_000,
+  domesticWorkers: 48_000_000,
+  unemployed:       2_160_000, // ~4.3% of labor force
+  gdp:             26_000,     // ₱ Billion
+  remittances:      1_850,
+  debt:               60,
+  tradeBalance:      -500,
+  eduLevel:           38,
+  infraLevel:         32,
+  techLevel:          28,
+  stability:          65,
+  militaryLevel:      22,
+  diplomacyLevel:     30,
+  politicalUnrest:    20,
+  govEfficiency:      45,
+};
+
+const ASEAN = {
+  sg: { name:'Singapore', flag:'🇸🇬', score: 94 },
+  my: { name:'Malaysia',  flag:'🇲🇾', score: 72 },
+  th: { name:'Thailand',  flag:'🇹🇭', score: 65 },
+  vn: { name:'Vietnam',   flag:'🇻🇳', score: 52, growth: 1.8 },
+  id: { name:'Indonesia', flag:'🇮🇩', score: 48, growth: 1.2 },
+};
+
+const LEVER_LABELS = {
+  exp: ['Protectionist','Cautious','Medium','Open','Full Open'],
+  ofw: ['Keep Home','Selective','Balanced','Encourage','Max Deploy'],
+  ind: ['Full Agri','Agri-heavy','Mixed','BPO-focused','Full Tech'],
+  pol: ['Authoritarian','Semi-Auth','Democracy','Liberal Demo','Full Liberal'],
+  env: ['Full Exploit','Resource-heavy','Balanced','Eco-friendly','Green Future'],
+};
+
+const INFO = {
+  levels: `<p><b>National Levels</b> are your underlying capability scores (each 0–100). They decay every year — keep investing or they erode.</p>
+    <p><b>🎓 Education:</b> Workforce skill multiplier. The single most powerful long-term investment.</p>
+    <p><b>🏗️ Infrastructure:</b> Roads, ports, power. Drops sharply after typhoons.</p>
+    <p><b>💡 Technology:</b> BPO, R&D, digital economy. Needs Education 40+ to shine.</p>
+    <p><b>🤝 Stability:</b> Social cohesion. Falls when unemployment rises or debt spirals.</p>
+    <p><b>⚔️ Military:</b> Defense strength. Reduces political unrest and territorial event damage.</p>
+    <p><b>🌐 Diplomacy:</b> Foreign relations. Unlocks trade deals and reduces trade war impact.</p>`,
+  budget: `<p><b>Government Budget</b> = ~17% of GDP collected as taxes each year across 8 sectors.</p>
+    <p>Going over budget = <b>deficit</b> → debt increases. Under budget = <b>surplus</b> → debt slowly decreases.</p>
+    <p>The bar turns <b style="color:var(--red)">red</b> when you're over budget. Watch the Debt danger meter!</p>
+    <p><b>New in v2:</b> Military, Agriculture, Diplomacy, and Governance sectors each have specific economic effects beyond just level gains.</p>`,
+  levers: `<p><b>Economic Levers</b> are big-picture policy positions with trade-offs.</p>
+    <p><b>📤 Trade Openness:</b> Open = more exports and GDP, but exposed to Trade Wars.</p>
+    <p><b>✈️ OFW Policy:</b> Deploy = massive remittance income, but risks Brain Drain event.</p>
+    <p><b>🏭 Industry Focus:</b> Agriculture = more jobs, lower pay. Tech = fewer jobs, very high pay.</p>
+    <p><b>🏛️ Political System:</b> Authoritarian = low unrest short-term but diplomatic penalties. Liberal = high stability, foreign investment bonus.</p>
+    <p><b>🌿 Environment:</b> Green = better stability and diplomacy. Exploit = short-term GDP boost, long-term health costs.</p>`,
+  power: `<p><b>National Power Allocation</b> distributes 100 points across 4 strategic pillars, like Conflict of Nations.</p>
+    <p><b>⚔️ Military:</b> Boosts military level gain 50% per 10pts. Reduces territorial event damage.</p>
+    <p><b>💹 Economy:</b> Each 10pts = +0.5% GDP multiplier. Best return per point.</p>
+    <p><b>🌐 Diplomacy:</b> Boosts diplomacy level gain. Reduces trade war severity. Unlocks alliance bonuses.</p>
+    <p><b>🔍 Intelligence:</b> Reduces corruption drag by 1% per 10pts. Reduces political unrest by 2 per 10pts.</p>`
+};
+
+const EVENTS = [
+  { name:'🚀 Global Tech Boom', desc:'International companies expand BPO and IT outsourcing in Southeast Asia.', effect(gs){gs.gdpMult+=0.08;gs.techBoostEv=0.12;gs.stability+=4;}, tip:'Great year to surge Technology investment!', positive:true },
+  { name:'📉 Global Recession', desc:'World economies slow. OFW remittances drop and export demand falls.', effect(gs){gs.gdpMult-=0.10;gs.remittances*=0.88;gs.tradeBalance-=300;gs.stability-=5;}, tip:'Cut spending to avoid debt. Keep Education — it protects long-term growth.', positive:false },
+  { name:'🌪️ Super Typhoon', desc:'A powerful typhoon hits Luzon and Visayas, damaging crops and infrastructure.', effect(gs){gs.infraLevel=Math.max(0,gs.infraLevel-10);gs.gdpMult-=0.06;gs.stability-=8;gs.politicalUnrest+=8;}, tip:'Boost Infrastructure and Social Services next turn to rebuild.', positive:false },
+  { name:'💰 Foreign Investment Surge', desc:'Investors choose PH for manufacturing and digital hubs after high competitiveness ratings.', effect(gs){gs.gdpMult+=0.07;gs.techLevel+=4;gs.stability+=4;gs.diplomacyLevel+=3;}, tip:'Ride the wave — increase Tech and Infrastructure spending!', positive:true },
+  { name:'✈️ Brain Drain Wave', desc:'High-skilled Filipinos leave for jobs in the US, Canada, and Europe.', effect(gs){gs.techLevel=Math.max(0,gs.techLevel-6);gs.eduLevel=Math.max(0,gs.eduLevel-3);gs.stability-=5;}, tip:'Reduce OFW Policy lever for 1–2 turns. Invest more in Education.', positive:false },
+  { name:'🌏 ASEAN Trade Deal', desc:'The Philippines signs a major regional free trade agreement — diplomacy pays off!', effect(gs){gs.tradeBalance+=400;gs.gdpMult+=0.05;gs.diplomacyLevel+=5;}, tip:'Increase Trade Openness lever to capitalise!', positive:true },
+  { name:'⚔️ Trade War', desc:'Key trading partners impose tariffs on Philippine exports.', effect(gs){gs.tradeBalance-=500;gs.gdpMult-=0.04;gs.stability-=3;}, tip:'Lower Trade Openness temporarily. Boost domestic industry.', positive:false },
+  { name:'🦠 Pandemic', desc:'A health crisis shuts down major industries and spikes unemployment.', effect(gs){gs.gdpMult-=0.15;gs.stability-=14;gs.unempBonus+=4;gs.politicalUnrest+=12;}, tip:'Emergency: cut spending to prevent debt. Protect Social Services to hold stability.', positive:false },
+  { name:'⚡ Renewable Energy Breakthrough', desc:'Solar and wind power costs collapse. PH builds massive renewable capacity.', effect(gs){gs.infraLevel+=5;gs.techLevel+=3;gs.gdpMult+=0.03;gs.govEfficiency+=3;}, tip:'Good year to invest — multipliers are elevated.', positive:true },
+  { name:'📊 OFW Remittance Record', desc:'OFWs send a record amount home, boosting household consumption.', effect(gs){gs.remittances*=1.12;gs.stability+=5;}, tip:'Strong domestic consumption year — focus on Tech to capitalise.', positive:true },
+  { name:'🌾 El Niño Drought', desc:'Severe drought hits agriculture. Rice and fish production drop.', effect(gs){gs.gdpMult-=0.05;gs.stability-=6;gs.unempBonus+=2;gs.politicalUnrest+=5;}, tip:'Boost Social Services and Agriculture spending this turn.', positive:false },
+  { name:'🏛️ Corruption Scandal', desc:'A major corruption scandal rocks the government and chills investor confidence.', effect(gs){gs.govEfficiency=Math.max(10,gs.govEfficiency-12);gs.stability-=10;gs.politicalUnrest+=15;gs.gdpMult-=0.04;}, tip:'Increase Governance budget and Intelligence power allocation.', positive:false },
+  { name:'⚓ South China Sea Standoff', desc:'Territorial tensions rise, affecting fishing and maritime trade routes.', effect(gs){gs.tradeBalance-=200;gs.gdpMult-=0.03;gs.politicalUnrest+=8;}, tip:'Boost Military and Diplomacy budgets. Increase Diplomacy power.', positive:false },
+  { name:'🎓 Nobel-Winning Scientist', desc:'A Filipino researcher wins a global award, boosting national pride and tech investment.', effect(gs){gs.eduLevel+=4;gs.techLevel+=3;gs.stability+=5;gs.politicalUnrest-=5;}, tip:'Capitalize — surge Tech and Education budgets this year.', positive:true },
+  { name:'🟢 Stable Year', desc:'A relatively uneventful year globally. Normal economic conditions.', effect(){}, tip:'Normal year — stay the course with long-term investments.', positive:null },
+  { name:'🟢 Stable Year', desc:'Global markets are balanced. Good year to build reserves.', effect(){}, tip:'Build your budget surplus this year.', positive:null },
+  { name:'💊 Healthcare Breakthrough', desc:'New medical technology reduces disease burden, increasing workforce productivity.', effect(gs){gs.stability+=6;gs.eduLevel+=2;gs.politicalUnrest-=4;}, tip:'Healthcare pays long dividends — keep Social Services funded.', positive:true },
+  { name:'🚢 Port Infrastructure Boom', desc:'Major Asian ports expand, giving PH new trade access if infrastructure is ready.', effect(gs){if(gs.infraLevel>50){gs.tradeBalance+=300;gs.gdpMult+=0.04;}else{gs.tradeBalance-=100;}}, tip:'Infrastructure level determines if this event helps or hurts you!', positive:null },
+];
+
+let gs = {};
+
+function initGameState() {
+  gs = {
+    year:            2025,
+    turn:            0,
+    population:      START.population,
+    ofwCount:        START.ofwCount,
+    domesticWorkers: START.domesticWorkers,
+    unemployed:      START.unemployed,
+    gdp:             START.gdp,
+    remittances:     START.remittances,
+    budget:          Math.round(START.gdp * 0.17),
+    debt:            START.debt,
+    tradeBalance:    START.tradeBalance,
+    eduLevel:        START.eduLevel,
+    infraLevel:      START.infraLevel,
+    techLevel:       START.techLevel,
+    stability:       START.stability,
+    militaryLevel:   START.militaryLevel,
+    diplomacyLevel:  START.diplomacyLevel,
+    politicalUnrest: START.politicalUnrest,
+    govEfficiency:   START.govEfficiency,
+    score:           0,
+    gdpPrev:         START.gdp,
+    gdpGrowth:       0,
+    negGdpYears:     0,
+    unempBonus:      0,
+    gdpMult:         1.0,
+    techBoostEv:     0,
+    gameOver:        false,
+    history:         [],
+    aseanScores:     { sg:94, my:72, th:65, vn:52, id:48 },
+  };
+  gs.score = calcScore();
+}
+
+function prodMultiplier() {
+  const govBonus = (gs.govEfficiency - 45) * 0.002; // governance efficiency bonus
+  return Math.max(0.5, 1
+    + gs.eduLevel   * 0.006
+    + gs.infraLevel * 0.004
+    + gs.techLevel  * 0.008
+    + govBonus);
+}
+
+function calcGDP() {
+  const pm = prodMultiplier();
+  const indLev = +document.getElementById('ls-ind').value;
+  const econPow = +document.getElementById('ps-economy').value;
+
+  const gdpPerWorker = 200 + indLev * 60;
+  const domesticOutput = (gs.domesticWorkers / 1_000_000) * gdpPerWorker * pm;
+  const remitContrib = gs.remittances;
+  const tradeContrib = gs.tradeBalance * 0.4;
+  const econPowBonus = 1 + (econPow / 100) * 0.5; // economy power up to +50% multiplier
+
+  const raw = (domesticOutput + remitContrib + tradeContrib) * econPowBonus;
+  return Math.max(0, raw * gs.gdpMult);
+}
+
+function calcUnempRate() {
+  const workingAgePop = Math.floor(gs.population * 0.63);
+  const laborForce = Math.floor(workingAgePop * 0.65);
+  const totalEmployed = gs.domesticWorkers + gs.ofwCount;
+  const unemployed = Math.max(0, laborForce - totalEmployed);
+  gs.unemployed = unemployed; // update gs with corrected unemployed count
+  const rawRate = (unemployed / laborForce) * 100;
+  return Math.min(50, rawRate + gs.unempBonus);
+}
+
+function calcScore() {
+  const gdpPerCap = (gs.gdp * 1_000_000_000) / gs.population;
+  const gdpPts = Math.min(40, gdpPerCap / 350_000);
+  const levelPts = Math.min(40, (gs.eduLevel + gs.infraLevel + gs.techLevel) / 7.5);
+  const tradePts = Math.min(10, Math.max(0, (gs.tradeBalance + 1000) / 200));
+  const stabPts = gs.stability / 10;
+  return Math.min(100, Math.max(0, gdpPts + levelPts + tradePts + stabPts));
+}
+
+// ASEAN country dynamic scores — they grow slowly over time
+function updateAseanScores() {
+  gs.aseanScores.vn = Math.min(80, gs.aseanScores.vn + (Math.random() * 2.5));
+  gs.aseanScores.id = Math.min(70, gs.aseanScores.id + (Math.random() * 1.8));
+  gs.aseanScores.th = Math.min(80, gs.aseanScores.th + (Math.random() * 1.0 - 0.3));
+  gs.aseanScores.my = Math.min(90, gs.aseanScores.my + (Math.random() * 0.8 - 0.2));
+  gs.aseanScores.sg = Math.min(98, gs.aseanScores.sg + (Math.random() * 0.4));
+}
+
+function getAseanRank() {
+  const scores = [
+    { name:'Singapore', score:gs.aseanScores.sg },
+    { name:'Malaysia',  score:gs.aseanScores.my },
+    { name:'Thailand',  score:gs.aseanScores.th },
+    { name:'Vietnam',   score:gs.aseanScores.vn },
+    { name:'Indonesia', score:gs.aseanScores.id },
+    { name:'Philippines', score:gs.score },
+  ];
+  scores.sort((a,b) => b.score - a.score);
+  const rank = scores.findIndex(s => s.name === 'Philippines') + 1;
+  const above = rank > 1 ? scores[rank-2].name : null;
+  const below = rank < 6 ? scores[rank].name : null;
+  return { rank, above, below, total: 6 };
+}
+
+function determineYearQuality(unempRate, surplus, event) {
+  const reasons = { good:[], bad:[] };
+  
+  if (gs.gdpGrowth > 4)   reasons.good.push(`GDP grew ${gs.gdpGrowth.toFixed(1)}%`);
+  else if (gs.gdpGrowth < 0) reasons.bad.push(`GDP shrank ${Math.abs(gs.gdpGrowth).toFixed(1)}%`);
+  else if (gs.gdpGrowth > 1) reasons.good.push(`GDP grew ${gs.gdpGrowth.toFixed(1)}%`);
+  
+  if (unempRate < 5)  reasons.good.push(`low ${unempRate.toFixed(1)}% unemployment`);
+  else if (unempRate > 12) reasons.bad.push(`high ${unempRate.toFixed(1)}% unemployment`);
+  
+  if (surplus > 0)   reasons.good.push('budget surplus');
+  else if (surplus < -500) reasons.bad.push('large budget deficit');
+  
+  if (gs.debt < 50)  reasons.good.push(`debt healthy at ${gs.debt.toFixed(0)}%`);
+  else if (gs.debt > 100) reasons.bad.push(`debt crisis at ${gs.debt.toFixed(0)}%`);
+  
+  if (gs.stability > 75) reasons.good.push('high social stability');
+  else if (gs.stability < 40) reasons.bad.push('low stability / unrest');
+  
+  if (event && event.positive === true)  reasons.good.push(event.name.split(' ').slice(1).join(' '));
+  if (event && event.positive === false) reasons.bad.push(event.name.split(' ').slice(1).join(' '));
+  
+  if (gs.score - (gs.history[0]?.score || gs.score) > 2) reasons.good.push('score improved');
+  
+  const isGood = reasons.good.length > reasons.bad.length || (reasons.good.length === reasons.bad.length && gs.gdpGrowth >= 0);
+  return { isGood, reasons };
+}
+
+// ─── MAIN GAME LOOP ───
+function nextYear() {
+  if (gs.gameOver) return;
+  gs.turn++;
+  gs.year++;
+  gs.gdpMult   = 1.0;
+  gs.techBoostEv = 0;
+  gs.unempBonus = 0;
+
+  const eduB = +document.getElementById('bs-edu').value;
+  const infB = +document.getElementById('bs-inf').value;
+  const tecB = +document.getElementById('bs-tec').value;
+  const socB = +document.getElementById('bs-soc').value;
+  const milB = +document.getElementById('bs-mil').value;
+  const agrB = +document.getElementById('bs-agr').value;
+  const dipB = +document.getElementById('bs-dip').value;
+  const heaB = +document.getElementById('bs-hea').value;
+  const totalSpend = eduB + infB + tecB + socB + milB + agrB + dipB + heaB;
+
+  const expLev = +document.getElementById('ls-exp').value;
+  const ofwLev = +document.getElementById('ls-ofw').value;
+  const indLev = +document.getElementById('ls-ind').value;
+  const polLev = +document.getElementById('ls-pol').value;
+  const envLev = +document.getElementById('ls-env').value;
+
+  const milPow = +document.getElementById('ps-military').value;
+  const ecoPow = +document.getElementById('ps-economy').value;
+  const dipPow = +document.getElementById('ps-diplomacy').value;
+  const intPow = +document.getElementById('ps-intel').value;
+
+  // Event
+  const event = EVENTS[Math.floor(Math.random() * EVENTS.length)];
+  event.effect(gs);
+  showEvent(event);
+
+  // Population growth
+  gs.population = Math.floor(gs.population * 1.016);
+
+  // OFW dynamics
+  const ofwTarget = Math.floor(gs.population * (0.065 + ofwLev * 0.012));
+  gs.ofwCount = Math.floor(gs.ofwCount * 0.96 + ofwTarget * 0.04);
+  gs.remittances = Math.round(gs.ofwCount * 0.0000175 * (1 + ofwLev * 0.04));
+
+  // Domestic workforce
+  const workingAgePop = Math.floor(gs.population * 0.63);
+  const laborForce = Math.floor(workingAgePop * 0.65);
+  // Agriculture budget creates rural jobs
+  const agrJobs = Math.floor(agrB * 50_000);
+  // Industry focus shifts employment
+  const jobGrowth = 1 + (indLev * 0.005) + (gs.techLevel * 0.0003) + (socB * 0.00002);
+  gs.domesticWorkers = Math.min(laborForce - 200_000, Math.floor((gs.domesticWorkers + agrJobs) * jobGrowth));
+
+  // National Levels (with power allocation bonuses)
+  const dim = l => Math.max(0.05, 1 - l / 130);
+  gs.eduLevel   = Math.min(100, Math.max(0, gs.eduLevel   - 1.0 + eduB * 0.018 * dim(gs.eduLevel)));
+  gs.infraLevel = Math.min(100, Math.max(0, gs.infraLevel - 1.2 + infB * 0.015 * dim(gs.infraLevel)));
+  gs.techLevel  = Math.min(100, Math.max(0, gs.techLevel  - 0.8 + tecB * 0.022 * dim(gs.techLevel) * (1 + gs.techBoostEv)));
+  // Military — boosted by power allocation
+  const milPowBonus = 1 + (milPow / 100) * 0.5;
+  gs.militaryLevel = Math.min(100, Math.max(0, gs.militaryLevel - 0.5 + milB * 0.02 * dim(gs.militaryLevel) * milPowBonus));
+  // Diplomacy — boosted by dipPow
+  const dipPowBonus = 1 + (dipPow / 100) * 0.5;
+  gs.diplomacyLevel = Math.min(100, Math.max(0, gs.diplomacyLevel - 0.3 + dipB * 0.025 * dim(gs.diplomacyLevel) * dipPowBonus));
+  // Governance efficiency
+  gs.govEfficiency = Math.min(100, Math.max(10, gs.govEfficiency - 0.5 + heaB * 0.03 * dim(gs.govEfficiency)));
+
+  // Trade balance
+  const exportFactor = (gs.techLevel * 0.6 + gs.infraLevel * 0.4) / 100;
+  const dipTradeBonus = gs.diplomacyLevel * 2; // diplomacy improves trade
+  gs.tradeBalance = -500 + (expLev * 200) + (exportFactor * 1000 * expLev * 0.5) + dipTradeBonus * 0.3;
+
+  // Political unrest
+  const intPowReduce = (intPow / 100) * 20; // intel reduces unrest
+  const polStabBonus = polLev > 2 ? (polLev - 2) * 5 : -(2 - polLev) * 8; // liberal = stable, auth = unstable
+  const unempRate = calcUnempRate();
+  gs.politicalUnrest = Math.max(0, Math.min(100,
+    gs.politicalUnrest
+    - milB * 0.02 // military spending reduces unrest
+    - intPowReduce
+    + (unempRate > 10 ? (unempRate - 10) * 0.8 : 0)
+    + (gs.debt > 80 ? (gs.debt - 80) * 0.15 : 0)
+    + polStabBonus * -0.1
+    + (gs.stability < 40 ? 5 : -2)
+  ));
+
+  // Stability
+  const envBonus = envLev > 2 ? (envLev - 2) * 1.5 : (envLev - 2) * 0.5;
+  gs.stability = Math.max(0, Math.min(100,
+    gs.stability
+    + (socB * 0.015)
+    - (unempRate > 8 ? (unempRate - 8) * 0.4 : 0)
+    - (gs.debt > 70 ? (gs.debt - 70) * 0.08 : 0)
+    + (gs.stability < 50 ? -1 : 0.5)
+    + envBonus
+    - (gs.politicalUnrest > 50 ? (gs.politicalUnrest - 50) * 0.1 : 0)
+  ));
+
+  // Budget & Debt
+  const taxRev = Math.round(gs.gdp * 0.17);
+  gs.budget = taxRev;
+  const surplus = taxRev - totalSpend;
+  if (surplus < 0) {
+    gs.debt = Math.min(200, gs.debt + (-surplus / gs.gdp) * 100);
+  } else {
+    gs.debt = Math.max(0, gs.debt - (surplus / gs.gdp) * 80);
+  }
+
+  // GDP
+  gs.gdpPrev  = gs.gdp;
+  gs.gdp      = calcGDP();
+  gs.gdpGrowth = gs.gdpPrev > 0 ? ((gs.gdp - gs.gdpPrev) / gs.gdpPrev) * 100 : 0;
+  gs.negGdpYears = gs.gdp < gs.gdpPrev ? gs.negGdpYears + 1 : 0;
+
+  // Score
+  gs.score = calcScore();
+
+  // ASEAN competitors grow
+  updateAseanScores();
+
+  // Year quality assessment
+  const yearQuality = determineYearQuality(unempRate, surplus, event);
+
+  // Advisor + Report
+  setAdvisor(unempRate, surplus, event);
+  buildReport(unempRate, surplus, event);
+
+  // History with year quality
+  gs.history.unshift({ year:gs.year, gdp:gs.gdp, score:gs.score, unemp:unempRate, debt:gs.debt, growth:gs.gdpGrowth, good:yearQuality.isGood, reasons:yearQuality.reasons });
+  renderTimeline();
+
+  renderAll(unempRate);
+  checkEnd(unempRate);
+}
+
+function setAdvisor(unempRate, surplus, event) {
+  let msg = '';
+  if (gs.politicalUnrest > 65) {
+    msg = '🚨 Political unrest is dangerously high! Increase Military and Governance budgets. Raise Intelligence power allocation to stabilize.';
+  } else if (gs.debt > 120) {
+    msg = '🚨 Debt is critical! Cut ALL spending to minimum this turn or risk default. Your legacy cannot be bankruptcy.';
+  } else if (unempRate > 20) {
+    msg = '🚨 Unemployment is dangerously high. Increase Agriculture + Social Services. Check that OFW policy is not too restrictive.';
+  } else if (gs.negGdpYears >= 2) {
+    msg = '⚠️ GDP has declined two years running. Never cut Education to zero — it is the foundation of growth. Boost Economy power and Tech investment.';
+  } else if (gs.techLevel < 30 && gs.turn > 5) {
+    msg = '📊 Technology investment is low. The Philippines\' BPO sector is its biggest GDP-growth engine. Push Tech budget higher.';
+  } else if (gs.eduLevel < 35) {
+    msg = '🎓 Education is falling behind. Without skilled workers, Tech and BPO investment won\'t help. Education first.';
+  } else if (gs.infraLevel < 25) {
+    msg = '🏗️ Infrastructure is weak. Poor roads and ports make business expensive. Vietnam is winning manufacturing because of this.';
+  } else if (surplus < 0) {
+    msg = '💸 Running a budget deficit. Slightly reduce spending this year to stop debt rising. Small cuts, sustainable path.';
+  } else if (event.tip) {
+    msg = `💡 Advisor on this event: ${event.tip}`;
+  } else if (gs.score > 70) {
+    msg = '📈 Almost there! Push Technology and Education hard. Shift Industry Focus to Tech/BPO. Boost Economy power allocation.';
+  } else {
+    msg = '✅ Steady progress. Keep Education and Technology consistent. Watch the ASEAN rankings — your rivals are growing too!';
+  }
+  document.getElementById('advisor-msg').textContent = msg;
+}
+
+function buildReport(unempRate, surplus, event) {
+  const g = gs.gdpGrowth;
+  const rankData = getAseanRank();
+  const rankText = `${rankData.rank}${['st','nd','rd','th'][Math.min(3,rankData.rank-1)]} of 6`;
+  const lines = [
+    { cls:'head', txt:`📅 Year ${gs.year} — Presidential Economic Report` },
+    { cls: g >= 3 ? 'good' : g >= 0 ? 'note' : 'bad',
+      txt: `GDP: ₱${fmtB(gs.gdp)} (${g >= 0 ? '+' : ''}${g.toFixed(1)}% vs last year)` },
+    { cls: unempRate < 6 ? 'good' : unempRate > 12 ? 'bad' : 'note',
+      txt: `Unemployment: ${unempRate.toFixed(1)}% — ${fmtPpl(gs.unemployed)} jobless` },
+    { cls: gs.debt > 100 ? 'bad' : gs.debt > 70 ? 'note' : 'good',
+      txt: `Debt: ${gs.debt.toFixed(1)}% of GDP` },
+    { cls: surplus >= 0 ? 'good' : 'bad',
+      txt: `Budget: ${surplus >= 0 ? 'Surplus' : 'Deficit'} of ₱${fmtB(Math.abs(surplus))}` },
+    { cls: gs.tradeBalance >= 0 ? 'good' : 'note',
+      txt: `Trade: ${gs.tradeBalance >= 0 ? 'Surplus' : 'Deficit'} ₱${fmtB(Math.abs(gs.tradeBalance))}` },
+    { cls: 'note', txt: `OFW Remittances: ₱${fmtB(gs.remittances)} from ${fmtPpl(gs.ofwCount)} abroad` },
+    { cls: gs.politicalUnrest < 30 ? 'good' : gs.politicalUnrest > 60 ? 'bad' : 'note',
+      txt: `Political Unrest: ${gs.politicalUnrest.toFixed(0)}/100 — ${gs.politicalUnrest < 30 ? 'Stable' : gs.politicalUnrest > 60 ? 'Dangerous!' : 'Moderate'}` },
+    { cls: rankData.rank <= 3 ? 'good' : rankData.rank <= 4 ? 'note' : 'bad',
+      txt: `ASEAN Ranking: ${rankText} ${rankData.above ? '(trailing '+rankData.above+')' : '(leading!)'}` },
+    { cls: gs.score >= 85 ? 'good' : gs.score >= 65 ? 'note' : 'bad',
+      txt: gs.score >= 85 ? '🏆 WIN CONDITION MET! Philippines is world-class!'
+         : gs.score >= 70 ? `📈 Score ${gs.score.toFixed(0)}/100 — Almost there!`
+         : gs.score >= 50 ? `⚙️ Score ${gs.score.toFixed(0)}/100 — Making progress.`
+         :                  `⚠️ Score ${gs.score.toFixed(0)}/100 — Bold reforms needed!` },
+  ];
+  document.getElementById('report-body').innerHTML =
+    lines.map(l => `<div class="rline ${l.cls}">${l.txt}</div>`).join('');
+}
+
+function showEvent(ev) {
+  document.getElementById('ev-name').textContent = ev.name;
+  document.getElementById('ev-desc').textContent = ev.desc;
+  document.getElementById('ev-effect').textContent = ev.tip ? `💡 ${ev.tip}` : '';
+}
+
+function renderTimeline() {
+  document.getElementById('year-timeline').innerHTML =
+    gs.history.slice(0, 20).map(h => {
+      const cls = h.good ? 'good' : h.good === false ? 'bad' : 'neutral';
+      const icon = h.good ? '▲' : h.good === false ? '▼' : '━';
+      const goodReasons = h.reasons?.good?.join(', ') || '';
+      const badReasons  = h.reasons?.bad?.join(', ')  || '';
+      return `<div class="yr-entry">
+        <span class="yr-badge ${cls}">${h.year}</span>
+        <div class="yr-detail">
+          <strong class="${h.good ? 'good' : 'bad'}">${icon} Score ${Math.round(h.score)} | GDP ₱${fmtB(h.gdp)} | Unemp ${h.unemp.toFixed(1)}%</strong>
+          ${goodReasons ? `<span style="color:var(--green)">✓ ${goodReasons}</span>` : ''}
+          ${badReasons  ? `<br><span style="color:var(--red)">✗ ${badReasons}</span>` : ''}
+        </div>
+      </div>`;
+    }).join('');
+}
+
+function checkEnd(unempRate) {
+  if (gs.score >= 85) {
+    const rankData = getAseanRank();
+    endGame(true, '🏆 Philippines Wins!',
+      `In ${gs.year}, the Philippines achieved a Competitiveness Score of ${gs.score.toFixed(0)} — ASEAN Rank ${rankData.rank}/6! GDP reached ₱${fmtB(gs.gdp)}, ${fmtPpl(gs.ofwCount)} OFWs are sending record remittances home. Mabuhay ang Pilipinas! 🇵🇭`);
+    return;
+  }
+  if (unempRate > 25) {
+    endGame(false, '💀 Unemployment Crisis',
+      `Unemployment hit ${unempRate.toFixed(1)}%. Millions are without work. Social unrest has made the economy ungovernable. Try investing more in Agriculture, Social Services, and adjusting Industry Focus.`);
+    return;
+  }
+  if (gs.debt > 150) {
+    endGame(false, '🏚️ Sovereign Default',
+      `Government debt reached ${gs.debt.toFixed(0)}% of GDP. The Philippines cannot pay its lenders. The peso collapses. Remember: 8 sectors of spending require fiscal discipline.`);
+    return;
+  }
+  if (gs.negGdpYears >= 3) {
+    endGame(false, '📉 Economic Depression',
+      `GDP contracted for ${gs.negGdpYears} straight years. The economy is in freefall. Never cut Education to zero during a crisis — it's the only thing that protects long-term output.`);
+    return;
+  }
+  if (gs.politicalUnrest > 80) {
+    endGame(false, '🔴 Political Collapse',
+      `Political unrest reached ${gs.politicalUnrest.toFixed(0)}/100. The government lost control. Mass protests turned into a crisis. Governance, Military, and Social Services spending would have prevented this.`);
+    return;
+  }
+}
+
+function endGame(win, title, body) {
+  gs.gameOver = true;
+  document.getElementById('end-icon').textContent  = win ? '🏆' : '💀';
+  document.getElementById('end-title').textContent = title;
+  document.getElementById('end-body').textContent  = body;
+  document.getElementById('end-btn').textContent   = win ? 'Play Again' : 'Try Again';
+  document.getElementById('end-overlay').classList.remove('hidden');
+}
+
+function resetGame() {
+  document.getElementById('end-overlay').classList.add('hidden');
+  ['bs-edu','bs-inf','bs-tec','bs-soc','bs-mil','bs-agr','bs-dip','bs-hea'].forEach((id,i) => {
+    document.getElementById(id).value = [20,15,10,15,8,10,5,7][i];
+  });
+  ['ls-exp','ls-ofw','ls-ind','ls-pol','ls-env'].forEach(id => document.getElementById(id).value = 2);
+  ['ps-military','ps-economy','ps-diplomacy','ps-intel'].forEach((id,i) => {
+    document.getElementById(id).value = [25,35,25,15][i];
+  });
+  initGameState();
+  onBudget();
+  onLevers();
+  onPower();
+  document.getElementById('report-body').innerHTML = '<p class="card-desc">Your annual report will appear here after each turn.</p>';
+  document.getElementById('year-timeline').innerHTML = '';
+  document.getElementById('ev-name').textContent = '—';
+  document.getElementById('ev-desc').textContent = 'Advance the year to see this year\'s global event.';
+  document.getElementById('ev-effect').textContent = '';
+  document.getElementById('advisor-msg').textContent = 'Welcome back, Mr./Ms. President. Ready for a new term? The Philippines needs you.';
+  renderAll(calcUnempRate());
+}
+
+function renderAll(unempRate) {
+  document.getElementById('h-year').textContent = gs.year;
+  document.getElementById('h-score').innerHTML = `${Math.round(gs.score)}<small>/100</small>`;
+  document.getElementById('turn-year').textContent = gs.year;
+
+  // ASEAN rank in header
+  const rk = getAseanRank();
+  document.getElementById('h-rank').textContent = rk.rank + '/6';
+
+  // Status
+  const statusEl = document.getElementById('h-status');
+  const chip = document.getElementById('hstat-status');
+  let status = 'STABLE', bc = 'rgba(0,230,118,0.08)', tc = 'var(--green)';
+  if (gs.stability < 30 || unempRate > 20 || gs.debt > 110 || gs.politicalUnrest > 65) {
+    status = 'CRISIS'; bc = 'rgba(255,61,61,0.12)'; tc = 'var(--red)';
+  } else if (gs.stability < 50 || unempRate > 12 || gs.debt > 80 || gs.politicalUnrest > 45) {
+    status = 'AT RISK'; bc = 'rgba(255,171,0,0.1)'; tc = 'var(--amber)';
+  }
+  statusEl.textContent = status;
+  statusEl.style.color = tc;
+  chip.style.background = bc;
+  chip.style.borderColor = tc;
+
+  // Nation grid
+  document.getElementById('v-pop').textContent  = fmtPpl(gs.population);
+  document.getElementById('v-work').textContent = fmtPpl(gs.domesticWorkers);
+  document.getElementById('v-ofw').textContent  = fmtPpl(gs.ofwCount);
+
+  const unempEl = document.getElementById('v-unemp');
+  const unempNs = document.getElementById('ns-unemp');
+  unempEl.textContent = unempRate.toFixed(1) + '%';
+  if (unempRate > 15) { unempEl.style.color='var(--red)'; unempNs.className='nstat nstat-crit'; }
+  else if (unempRate > 8) { unempEl.style.color='var(--amber)'; unempNs.className='nstat nstat-warn'; }
+  else { unempEl.style.color='var(--green)'; unempNs.className='nstat nstat-good'; }
+
+  document.getElementById('v-gdp').textContent  = '₱' + fmtB(gs.gdp);
+  const growthEl = document.getElementById('v-growth');
+  growthEl.textContent = (gs.gdpGrowth >= 0 ? '+' : '') + gs.gdpGrowth.toFixed(1) + '%';
+  growthEl.style.color = gs.gdpGrowth >= 0 ? 'var(--green)' : 'var(--red)';
+
+  document.getElementById('v-remit').textContent  = '₱' + fmtB(gs.remittances);
+  document.getElementById('v-budget').textContent = '₱' + fmtB(gs.budget);
+
+  const debtEl = document.getElementById('v-debt');
+  const debtNs = document.getElementById('ns-debt');
+  debtEl.textContent = gs.debt.toFixed(1) + '%';
+  if (gs.debt > 100) { debtEl.style.color='var(--red)'; debtNs.className='nstat nstat-crit'; }
+  else if (gs.debt > 70) { debtEl.style.color='var(--amber)'; debtNs.className='nstat nstat-warn'; }
+  else { debtEl.style.color='var(--green)'; debtNs.className='nstat nstat-good'; }
+
+  document.getElementById('v-diprel').textContent = gs.diplomacyLevel.toFixed(0);
+
+  // Levels
+  setBar('lb-edu','ln-edu', gs.eduLevel);
+  setBar('lb-inf','ln-inf', gs.infraLevel);
+  setBar('lb-tec','ln-tec', gs.techLevel);
+  setBar('lb-sta','ln-sta', gs.stability);
+  setBar('lb-mil','ln-mil', gs.militaryLevel);
+  setBar('lb-dip','ln-dip', gs.diplomacyLevel);
+
+  // Win bar
+  const score = Math.min(100, gs.score);
+  document.getElementById('win-fill').style.width = score + '%';
+  document.getElementById('win-nums').textContent = Math.round(score) + ' / 85';
+  document.getElementById('win-fill').style.background = score >= 85 ? 'var(--green)'
+    : score >= 60 ? 'linear-gradient(90deg,var(--edu),var(--tec))'
+    : 'linear-gradient(90deg,var(--edu),var(--inf))';
+  document.getElementById('win-caption').textContent = score >= 85
+    ? '🏆 WIN CONDITION MET!'
+    : `${(85 - score).toFixed(0)} more points to win!`;
+
+  // Map overlay
+  document.getElementById('mo-score').textContent = Math.round(gs.score);
+  document.getElementById('mo-year').textContent  = gs.year;
+  const gdpCap = Math.round((gs.gdp * 1_000_000_000) / gs.population);
+  document.getElementById('mo-gdpcap').textContent = '₱' + fmtPpl(gdpCap);
+  document.getElementById('mo-trade').textContent  = (gs.tradeBalance >= 0 ? '+' : '') + '₱' + fmtB(Math.abs(gs.tradeBalance));
+  document.getElementById('mo-pol').textContent    = gs.politicalUnrest.toFixed(0) + ' unrest';
+  document.getElementById('mo-mil').textContent    = gs.militaryLevel.toFixed(0) + '/100';
+
+  // Danger meters
+  setDanger('d-unemp','dn-unemp', unempRate, 25, '%');
+  setDanger('d-debt', 'dn-debt',  gs.debt,   150, '%');
+  setDanger('d-neg',  'dn-neg',   gs.negGdpYears, 3, 'yr');
+  setDanger('d-pol',  'dn-pol',   gs.politicalUnrest, 80, '');
+
+  // Country comparison
+  const allScores = {
+    sg: gs.aseanScores.sg,
+    my: gs.aseanScores.my,
+    th: gs.aseanScores.th,
+    vn: gs.aseanScores.vn,
+    id: gs.aseanScores.id,
+  };
+  Object.entries(allScores).forEach(([code, sc]) => {
+    const filled = Math.min(100, sc);
+    document.getElementById('cc-'+code).style.width = filled + '%';
+    document.getElementById('cs-'+code).textContent = Math.round(sc);
+  });
+  document.getElementById('cc-ph').style.width = Math.min(100, gs.score) + '%';
+  document.getElementById('cs-ph').textContent = Math.round(gs.score);
+
+  const rankData = getAseanRank();
+  const rankSuffix = ['st','nd','rd','th'][Math.min(3, rankData.rank-1)];
+  const rankColor = rankData.rank <= 2 ? 'var(--green)' : rankData.rank <= 4 ? 'var(--amber)' : 'var(--red)';
+  document.getElementById('cc-rank-text').style.color = rankColor;
+  document.getElementById('cc-rank-text').textContent = `${rankData.rank}${rankSuffix} of 6`;
+  const aboveText = rankData.above ? ` — Trailing ${rankData.above}` : ' — PH is Leading!';
+  document.getElementById('cc-rank-box').innerHTML = `📊 ASEAN Rank: <strong id="cc-rank-text" style="color:${rankColor}">${rankData.rank}${rankSuffix} of 6</strong>${aboveText}`;
+}
+
+function setBar(fillId, numId, val) {
+  const f = document.getElementById(fillId);
+  const n = document.getElementById(numId);
+  if (f) f.style.width = Math.min(100, Math.max(0, val)) + '%';
+  if (n) n.textContent = Math.round(val);
+}
+
+function setDanger(fillId, numId, val, max, unit) {
+  const pct = Math.min(100, (val / max) * 100);
+  const f = document.getElementById(fillId);
+  const n = document.getElementById(numId);
+  if (f) f.style.width = pct + '%';
+  if (n) {
+    n.textContent = (typeof val === 'number' && !Number.isInteger(val) && unit !== 'yr')
+      ? val.toFixed(1) + unit : Math.round(val) + unit;
+    n.style.color = pct > 80 ? 'var(--red)' : pct > 50 ? 'var(--amber)' : 'var(--green)';
+  }
+}
+
+// ─── UI HANDLERS ───
+function onBudget() {
+  const ids = ['edu','inf','tec','soc','mil','agr','dip','hea'];
+  let total = 0;
+  ids.forEach(id => {
+    const v = +document.getElementById('bs-'+id).value;
+    document.getElementById('bv-'+id).textContent = v;
+    total += v;
+  });
+  const avail = gs.budget || Math.round(gs.gdp * 0.17);
+  const rem = avail - total;
+  const pct = Math.min(100, (total / avail) * 100);
+
+  document.getElementById('budget-avail').textContent = '₱' + avail + 'B';
+  document.getElementById('budget-spent').textContent = '₱' + total + 'B';
+  document.getElementById('budget-rem').textContent = (rem >= 0 ? '₱' : '-₱') + Math.abs(rem) + 'B';
+
+  const fill = document.getElementById('brb-fill');
+  fill.style.width = Math.min(120, pct) + '%';
+  fill.style.background = rem < 0 ? 'var(--red)' : rem < avail * 0.1 ? 'var(--amber)' : 'var(--green)';
+
+  const cap = document.getElementById('brb-caption');
+  cap.textContent = rem < 0 ? `⚠️ Over budget by ₱${Math.abs(rem)}B — debt will increase`
+    : rem === 0 ? '✅ Exactly on budget'
+    : `✅ ₱${rem}B surplus — debt will decrease`;
+  cap.style.color = rem < 0 ? 'var(--red)' : 'var(--green)';
+}
+
+function onLevers() {
+  document.getElementById('lv-exp').textContent = LEVER_LABELS.exp[+document.getElementById('ls-exp').value];
+  document.getElementById('lv-ofw').textContent = LEVER_LABELS.ofw[+document.getElementById('ls-ofw').value];
+  document.getElementById('lv-ind').textContent = LEVER_LABELS.ind[+document.getElementById('ls-ind').value];
+  document.getElementById('lv-pol').textContent = LEVER_LABELS.pol[+document.getElementById('ls-pol').value];
+  document.getElementById('lv-env').textContent = LEVER_LABELS.env[+document.getElementById('ls-env').value];
+}
+
+function onPower() {
+  const mil = +document.getElementById('ps-military').value;
+  const eco = +document.getElementById('ps-economy').value;
+  const dip = +document.getElementById('ps-diplomacy').value;
+  const int = +document.getElementById('ps-intel').value;
+  const total = mil + eco + dip + int;
+
+  document.getElementById('pv-military').textContent = mil;
+  document.getElementById('pv-economy').textContent  = eco;
+  document.getElementById('pv-diplomacy').textContent= dip;
+  document.getElementById('pv-intel').textContent    = int;
+
+  document.getElementById('pf-military').style.width = mil + '%';
+  document.getElementById('pf-economy').style.width  = eco + '%';
+  document.getElementById('pf-diplomacy').style.width= dip + '%';
+  document.getElementById('pf-intel').style.width    = int + '%';
+
+  const totalEl = document.getElementById('pw-total');
+  const remEl   = document.getElementById('power-remaining');
+  totalEl.textContent = total;
+  if (total > 100) {
+    totalEl.style.color = 'var(--red)';
+    remEl.style.background = 'rgba(255,61,61,0.1)';
+    remEl.style.border = '1px solid rgba(255,61,61,0.3)';
+    remEl.innerHTML = `⚠️ Total: <span id="pw-total" style="color:var(--red)">${total}</span>/100 — Over limit! Reduce allocation`;
+  } else if (total < 100) {
+    totalEl.style.color = 'var(--amber)';
+    remEl.style.background = 'rgba(255,171,0,0.06)';
+    remEl.style.border = '1px solid rgba(255,171,0,0.2)';
+    remEl.innerHTML = `⚡ Total: <span id="pw-total" style="color:var(--amber)">${total}</span>/100 — ${100-total} points unallocated`;
+  } else {
+    remEl.style.background = 'rgba(0,230,118,0.06)';
+    remEl.style.border = '1px solid rgba(0,230,118,0.2)';
+    remEl.innerHTML = `✅ Total: <span id="pw-total" style="color:var(--green)">100</span>/100 — Fully allocated`;
+  }
+}
+
+// ─── GUIDE + INFO MODALS ───
+function openGuide() {
+  document.getElementById('guide-overlay').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+}
+function closeGuide() {
+  document.getElementById('guide-overlay').classList.add('hidden');
+  document.body.style.overflow = '';
+}
+function showTab(tabId, btn) {
+  document.querySelectorAll('.gtab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.gtab').forEach(b => b.classList.remove('active'));
+  const tab = document.getElementById('tab-' + tabId);
+  if (tab) tab.classList.add('active');
+  if (btn) btn.classList.add('active');
+}
+function openInfo(key) {
+  const titles = { levels:'📡 National Levels', budget:'💰 Budget System', levers:'🎛️ Economic Levers', power:'⚡ National Power Allocation' };
+  document.getElementById('info-title').textContent = titles[key] || 'Info';
+  document.getElementById('info-body').innerHTML    = INFO[key] || '<p>No info available.</p>';
+  document.getElementById('info-overlay').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+}
+function closeInfo() {
+  document.getElementById('info-overlay').classList.add('hidden');
+  document.body.style.overflow = '';
+}
+
+// ─── MOBILE PANEL SWITCHING ───
+function showPanel(which, btn) {
+  ['left','center','right'].forEach(p => {
+    document.getElementById('panel-'+p).classList.remove('active-panel');
+  });
+  document.getElementById('panel-'+which).classList.add('active-panel');
+  document.querySelectorAll('.mtab').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+}
+
+// ─── FORMATTERS ───
+function fmtPpl(n) {
+  if (n >= 1_000_000_000) return (n / 1_000_000_000).toFixed(2) + 'B';
+  if (n >= 1_000_000)     return (n / 1_000_000).toFixed(1) + 'M';
+  if (n >= 1_000)         return (n / 1_000).toFixed(0) + 'K';
+  return String(Math.round(n));
+}
+function fmtB(n) {
+  if (Math.abs(n) >= 1_000) return (n / 1_000).toFixed(1) + 'T';
+  return Math.round(n) + 'B';
+}
+
+// ─── STARTUP ───
+window.addEventListener('DOMContentLoaded', () => {
+  initGameState();
+  onBudget();
+  onLevers();
+  onPower();
+  renderAll(calcUnempRate());
+  Object.assign(window, {
+    nextYear, resetGame, openGuide, closeGuide, showTab, openInfo, closeInfo,
+    onBudget, onLevers, onPower, showPanel,
+  });
+  console.log('🇵🇭 PH Nation Builder v2 loaded. GDP: ₱' + fmtB(gs.gdp) + ' | Pop: ' + fmtPpl(gs.population));
+});
+</script>
 </body>
 </html>
