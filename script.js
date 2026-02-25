@@ -1,565 +1,662 @@
-/* ══════════════════════════════════════════════════════════
-   GEO-ECONOMICS SIMULATOR  ·  script.js
-   All game logic, UI, tooltips, and guide modal.
-   Everything runs inside DOMContentLoaded to avoid
-   "not defined" errors on inline onclick handlers.
-══════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════
+   PH Nation Builder — script.js
+   Real Philippines starting data (2025 estimates).
+   Simple, engaging, educational economic sim.
+═══════════════════════════════════════════════════════ */
 
-// ─────────────────────────────────────────────────────────
-// 1. GAME CONSTANTS
-// ─────────────────────────────────────────────────────────
-const CONSTANTS = {
-  START_YEAR:    2025,
-  MAX_SCORE_WIN: 85,
-  UNEMP_LOSE:    25,
-  DEBT_LOSE:     150,
-  NEG_GDP_LOSE:  3,
-  INDUSTRIES: [
-    { id: 'agri',  name: '🌾 Agriculture',   gdpPerWorkerM: 4.5,  defaultPct: 25, color: '#a5d6a7' },
-    { id: 'mfg',   name: '🏭 Manufacturing',  gdpPerWorkerM: 12,   defaultPct: 18, color: '#ffcc02' },
-    { id: 'svc',   name: '🛒 Services',       gdpPerWorkerM: 9,    defaultPct: 35, color: '#81d4fa' },
-    { id: 'tech',  name: '💻 Technology',     gdpPerWorkerM: 28,   defaultPct: 6,  color: '#00e676' },
-    { id: 'gov',   name: '🏛️ Government',     gdpPerWorkerM: 5,    defaultPct: 8,  color: '#ce93d8' },
-    { id: 'edu',   name: '🎓 Education',      gdpPerWorkerM: 4,    defaultPct: 5,  color: '#80cbc4' },
-    { id: 'infra', name: '🔧 Infrastructure', gdpPerWorkerM: 7,    defaultPct: 3,  color: '#ffab91' },
-  ],
-  POP_GROWTH_RATE:   0.013,
-  TAX_RATE:          0.20,
-  EDU_GAIN_PER_B:    0.35,
-  INFRA_GAIN_PER_B:  0.28,
-  TECH_GAIN_PER_B:   0.45,
-  LEVEL_DECAY:       0.8,
-  EDU_PROD_MOD:      0.005,
-  INFRA_PROD_MOD:    0.004,
-  TECH_PROD_MOD:     0.007,
-  EXPORT_GDP_FACTOR: 0.0018,
-  IMPORT_DRAG:       0.0010,
+// ─────────────────────────────────────────────────────
+// REAL PHILIPPINES STARTING DATA (2025 estimates)
+// ─────────────────────────────────────────────────────
+const START = {
+  population:    118_000_000,   // ~118 million Filipinos
+  ofwCount:       10_600_000,   // ~10.6 million OFWs abroad
+  domesticWorkers:50_000_000,   // ~50 million domestic workers
+  unemployed:      2_300_000,   // ~4.5% of domestic labor force
+  gdp:            26_000,       // ₱26 Trillion → stored as ₱ Billion = 26,000 B
+  remittances:     1_850,       // ₱1.85 Trillion/year → 1,850 B
+  debt:               60,       // ~60% of GDP
+  tradeBalance:     -500,       // Trade deficit ~₱500B/year
+  eduLevel:          38,        // Education level 0-100 (PH is above mid)
+  infraLevel:        32,        // Infrastructure (roads/ports are below average globally)
+  techLevel:         28,        // Technology (BPO strong but digital lagging)
+  stability:         65,        // Social stability
 };
 
-// ─────────────────────────────────────────────────────────
-// 2. WORLD EVENTS
-// ─────────────────────────────────────────────────────────
-const WORLD_EVENTS = [
-  { name:'Global Tech Boom',         desc:'International demand for tech workers surges.',           effect:gs=>{gs.gdpMultiplier+=0.08;gs.stability+=5;},                                                                           display:'+8% GDP, +5 Stability' },
-  { name:'Global Recession',         desc:'World trade contracts sharply. Exports suffer.',          effect:gs=>{gs.gdpMultiplier-=0.10;gs.tradeBalance-=15;},                                                                        display:'-10% GDP, -₱15B Trade' },
-  { name:'Natural Disaster',         desc:'Typhoons damage infrastructure and agriculture.',         effect:gs=>{gs.infraLevel=Math.max(0,gs.infraLevel-8);gs.stability-=8;},                                                         display:'-8 Infrastructure, -8 Stability' },
-  { name:'Foreign Investment Surge', desc:'Favorable ratings attract foreign capital.',              effect:gs=>{gs.gdpMultiplier+=0.06;gs.workforce.tech+=50000;},                                                                    display:'+6% GDP, +50K Tech Workers' },
-  { name:'Brain Drain Wave',         desc:'Skilled workers emigrate for better opportunities.',      effect:gs=>{const l=Math.floor(gs.workforce.tech*0.08);gs.workforce.tech=Math.max(0,gs.workforce.tech-l);gs.stability-=5;},      display:'-8% Tech Workers, -5 Stability' },
-  { name:'Tourism Boom',             desc:'International arrivals hit record highs.',                effect:gs=>{gs.gdpMultiplier+=0.04;gs.tradeBalance+=8;},                                                                         display:'+4% GDP, +₱8B Trade Balance' },
-  { name:'Trade War',                desc:'Key trading partners impose tariffs on exports.',         effect:gs=>{gs.tradeBalance-=20;gs.gdpMultiplier-=0.03;},                                                                        display:'-₱20B Trade, -3% GDP' },
-  { name:'Pandemic',                 desc:'Health crisis disrupts labor markets and supply chains.', effect:gs=>{gs.gdpMultiplier-=0.15;gs.stability-=12;gs.unemploymentExtra+=3;},                                                   display:'-15% GDP, -12 Stability, +3% Unemployment' },
-  { name:'Green Energy Revolution',  desc:'Renewable energy drives productivity gains.',             effect:gs=>{gs.techLevel+=4;gs.infraLevel+=3;},                                                                                  display:'+4 Technology, +3 Infrastructure' },
-  { name:'Demographic Dividend',     desc:'Young workforce enters the economy at scale.',            effect:gs=>{gs.workingAgePop=Math.floor(gs.workingAgePop*1.03);gs.stability+=4;},                                               display:'+3% Working-Age Pop, +4 Stability' },
-  { name:'Stable Year',              desc:'A relatively calm year with no major global shocks.',     effect:()=>{},                                                                                                                    display:'No effect' },
-  { name:'Stable Year',              desc:'Global markets remain balanced.',                         effect:()=>{},                                                                                                                    display:'No effect' },
+// ─────────────────────────────────────────────────────
+// WORLD EVENTS
+// ─────────────────────────────────────────────────────
+const EVENTS = [
+  {
+    name: '🚀 Global Tech Boom',
+    desc: 'International companies expand BPO and IT outsourcing in Southeast Asia.',
+    effect(gs) { gs.techBoost = 0.12; gs.gdpMult += 0.08; gs.stability += 5; },
+    tip: 'Great year to surge Technology investment!'
+  },
+  {
+    name: '📉 Global Recession',
+    desc: 'World economies slow. OFW remittances drop and export demand falls.',
+    effect(gs) { gs.gdpMult -= 0.10; gs.remittances *= 0.88; gs.tradeBalance -= 300; },
+    tip: 'Cut spending to avoid debt. Keep Education — it protects long-term growth.'
+  },
+  {
+    name: '🌪️ Super Typhoon',
+    desc: 'A powerful typhoon hits Luzon and Visayas, damaging crops and infrastructure.',
+    effect(gs) { gs.infraLevel = Math.max(0, gs.infraLevel - 10); gs.gdpMult -= 0.06; gs.stability -= 8; },
+    tip: 'Boost Infrastructure spending next turn to rebuild.'
+  },
+  {
+    name: '💰 Foreign Investment Surge',
+    desc: 'Investors choose PH for manufacturing and digital hubs after high competitiveness ratings.',
+    effect(gs) { gs.gdpMult += 0.07; gs.techLevel += 4; gs.stability += 4; },
+    tip: 'Ride the wave — increase Tech and Infrastructure spending!'
+  },
+  {
+    name: '✈️ Brain Drain Wave',
+    desc: 'High-skilled Filipinos leave for jobs in the US, Canada, and Europe.',
+    effect(gs) { gs.techLevel = Math.max(0, gs.techLevel - 6); gs.eduLevel = Math.max(0, gs.eduLevel - 3); gs.stability -= 5; },
+    tip: 'Reduce OFW Policy lever for 1–2 turns. Invest more in Education.'
+  },
+  {
+    name: '🌏 ASEAN Trade Deal',
+    desc: 'The Philippines signs a major regional free trade agreement.',
+    effect(gs) { gs.tradeBalance += 400; gs.gdpMult += 0.05; },
+    tip: 'Increase Trade Openness lever to capitalise on this!'
+  },
+  {
+    name: '⚔️ Trade War',
+    desc: 'Key trading partners impose tariffs on Philippine exports.',
+    effect(gs) { gs.tradeBalance -= 500; gs.gdpMult -= 0.04; },
+    tip: 'Lower Trade Openness temporarily. Boost domestic industry.'
+  },
+  {
+    name: '🦠 Pandemic',
+    desc: 'A health crisis shuts down major industries and spikes unemployment.',
+    effect(gs) { gs.gdpMult -= 0.15; gs.stability -= 14; gs.unempBonus += 3; },
+    tip: 'Emergency: cut spending to prevent debt. Protect Social Services to hold stability.'
+  },
+  {
+    name: '⚡ Renewable Energy Breakthrough',
+    desc: 'Solar and wind power costs collapse. PH builds massive renewable capacity.',
+    effect(gs) { gs.infraLevel += 5; gs.techLevel += 3; gs.gdpMult += 0.03; },
+    tip: 'Good year to invest — multipliers are elevated.'
+  },
+  {
+    name: '📊 OFW Remittance Record',
+    desc: 'OFWs send a record amount home, boosting household consumption.',
+    effect(gs) { gs.remittances *= 1.12; gs.stability += 5; },
+    tip: 'Strong domestic consumption year — focus on Tech to capitalise.'
+  },
+  {
+    name: '🌾 El Niño Drought',
+    desc: 'Severe drought hits agriculture. Rice and fish production drop.',
+    effect(gs) { gs.gdpMult -= 0.05; gs.stability -= 6; gs.unempBonus += 1.5; },
+    tip: 'Boost Social Services this turn to protect the poor.'
+  },
+  { name: '🟢 Stable Year', desc: 'A relatively uneventful year globally. Normal economic conditions.', effect() {}, tip: 'Normal year — stay the course with long-term investments.' },
+  { name: '🟢 Stable Year', desc: 'Global markets are balanced. Good year to build reserves.', effect() {}, tip: 'Build your budget surplus this year.' },
 ];
 
-// ─────────────────────────────────────────────────────────
-// 3. GAME STATE
-// ─────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────
+// LEVER LABELS
+// ─────────────────────────────────────────────────────
+const LEVER_LABELS = {
+  exp: ['Protectionist','Cautious','Medium','Open','Full Open'],
+  ofw: ['Keep Home','Selective','Balanced','Encourage','Max Deploy'],
+  ind: ['Full Agri','Agri-heavy','Mixed','BPO-focused','Full Tech'],
+};
+
+// ─────────────────────────────────────────────────────
+// INFO CONTENT (for ⓘ buttons)
+// ─────────────────────────────────────────────────────
+const INFO = {
+  levels: `
+    <p><b>National Levels</b> are your country's underlying capability scores (each 0–100).</p>
+    <p><b>🎓 Education:</b> How skilled is your workforce? Higher education means every worker produces more. This multiplies GDP from ALL industries and is the most important long-term investment. Think of it as the Philippines investing in schools, universities, and skills training.</p>
+    <p><b>🏗️ Infrastructure:</b> Roads, ports, power grids, airports. Poor infrastructure = high transport costs = businesses locate elsewhere. Strong infrastructure = faster growth. Decays if you stop investing. Drops sharply after Super Typhoons.</p>
+    <p><b>💡 Technology:</b> Includes R&D, internet access, BPO capacity, digital economy. High tech = high-paying jobs. Works best when Education is also high. This is how the PH grows from call-centers to AI services.</p>
+    <p><b>🤝 Stability:</b> Social cohesion — low unrest, public trust. Falls when unemployment rises or debt becomes unsustainable. Low stability hurts investor confidence and GDP. High stability = everything works better.</p>
+    <p>Levels <b>decay slightly each year</b> — you must keep investing or they erode.</p>
+  `,
+  budget: `
+    <p><b>Government Budget</b> = roughly 17% of GDP collected as taxes each year.</p>
+    <p>If you spend more than the budget, the government goes into <b>deficit</b> → debt increases. If you spend less, you have a <b>surplus</b> → debt slowly decreases.</p>
+    <p>The bar turns <b style="color:#f85149">red</b> when you're over budget. This isn't instant death — it just means debt rises. Watch the Debt meter on the right.</p>
+    <p>Real PH government budget in 2024: ~₱5.7 Trillion (₱5,700B). Your budget scales with your GDP, just like in real life.</p>
+  `,
+  levers: `
+    <p><b>Economic Levers</b> are your big-picture policy positions. Unlike the budget sliders, these represent strategic direction — not exact money amounts.</p>
+    <p><b>📤 Trade Openness:</b> How open are your borders to international trade? The PH exports electronics, semiconductors, OFW services, and BPO. More open = more trade income but more exposure to global shocks like Trade Wars.</p>
+    <p><b>✈️ OFW Policy:</b> Do you encourage Filipinos to work abroad or build industries at home? OFWs send billions home in remittances ($38B in 2024!) which is a massive GDP boost. But too many leaving = Brain Drain = tech and education levels drop.</p>
+    <p><b>🏭 Industry Focus:</b> Where do you direct economic incentives? Agriculture employs many people but at low wages. Tech/BPO employs fewer people but generates much higher GDP per worker. The PH needs to climb this ladder — but only when Education and Tech levels are ready.</p>
+  `
+};
+
+// ─────────────────────────────────────────────────────
+// GAME STATE
+// ─────────────────────────────────────────────────────
 let gs = {};
 
 function initGameState() {
   gs = {
-    year:2025,turn:0,
-    totalPop:120000000,workingAgePop:0,laborForce:0,
-    workforce:{},
-    gdp:0,prevGdp:0,gdpGrowthRate:0,gdpMultiplier:1.0,
-    budget:600,debt:40,tradeBalance:-10,unemploymentExtra:0,
-    eduLevel:30,infraLevel:25,techLevel:20,stability:60,
-    score:0,negGdpYears:0,gameOver:false,history:[],
+    year:           2025,
+    turn:           0,
+    population:     START.population,
+    ofwCount:       START.ofwCount,
+    domesticWorkers:START.domesticWorkers,
+    unemployed:     START.unemployed,
+    gdp:            START.gdp,
+    remittances:    START.remittances,
+    budget:         Math.round(START.gdp * 0.17),
+    debt:           START.debt,
+    tradeBalance:   START.tradeBalance,
+    eduLevel:       START.eduLevel,
+    infraLevel:     START.infraLevel,
+    techLevel:      START.techLevel,
+    stability:      START.stability,
+    score:          0,
+    gdpPrev:        START.gdp,
+    gdpGrowth:      0,
+    negGdpYears:    0,
+    unempBonus:     0,
+    gdpMult:        1.0,
+    techBoost:      0,
+    gameOver:       false,
+    history:        [],
   };
-  gs.workingAgePop = Math.floor(gs.totalPop*0.65);
-  gs.laborForce    = Math.floor(gs.workingAgePop*0.60);
-  CONSTANTS.INDUSTRIES.forEach(ind=>{
-    gs.workforce[ind.id]=Math.floor(gs.laborForce*(ind.defaultPct/100));
-  });
-  gs.gdp=calcGDP(); gs.prevGdp=gs.gdp;
-  gs.budget=gs.gdp*CONSTANTS.TAX_RATE;
-  gs.score=calcScore();
+  gs.score = calcScore();
 }
 
-// ─────────────────────────────────────────────────────────
-// 4. GDP
-// ─────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────
+// CORE CALCULATIONS
+// ─────────────────────────────────────────────────────
+
+/** Productivity multiplier: how much more each worker produces
+ *  based on Education, Infrastructure, Technology levels */
+function prodMultiplier() {
+  return 1
+    + gs.eduLevel   * 0.006
+    + gs.infraLevel * 0.004
+    + gs.techLevel  * 0.008;
+}
+
+/** Calculate GDP in ₱ Billion
+ *  Combines domestic output + remittances + trade */
 function calcGDP() {
-  const prodMult=1+gs.eduLevel*CONSTANTS.EDU_PROD_MOD+gs.infraLevel*CONSTANTS.INFRA_PROD_MOD+gs.techLevel*CONSTANTS.TECH_PROD_MOD;
-  let total=0;
-  CONSTANTS.INDUSTRIES.forEach(ind=>{
-    total+=(gs.workforce[ind.id]||0)/1000000*ind.gdpPerWorkerM*prodMult;
-  });
-  return Math.max(0,total*gs.gdpMultiplier+gs.tradeBalance*0.3);
+  const pm = prodMultiplier();
+
+  // Domestic workers produce based on industry focus lever
+  const indFocus = +document.getElementById('ls-ind').value; // 0-4
+  // Higher industry focus = more GDP per domestic worker
+  const gdpPerWorker = 200 + indFocus * 60; // ₱200K–₱440K per worker, in B units
+  const domesticOutput = (gs.domesticWorkers / 1_000_000) * gdpPerWorker * pm;
+
+  // OFW remittances (stored in ₱B already)
+  const remitContrib = gs.remittances;
+
+  // Trade
+  const tradeContrib = gs.tradeBalance * 0.4;
+
+  const raw = domesticOutput + remitContrib + tradeContrib;
+  return Math.max(0, raw * gs.gdpMult);
 }
 
-// ─────────────────────────────────────────────────────────
-// 5. SCORE
-// ─────────────────────────────────────────────────────────
+/** Competitiveness Score 0–100 */
 function calcScore() {
-  return Math.min(100,Math.max(0,
-    Math.min(40,(gs.gdp*1e9/gs.totalPop)/750)+
-    (gs.eduLevel+gs.infraLevel+gs.techLevel)/7.5+
-    Math.min(10,Math.max(0,(gs.tradeBalance+50)/10))+
-    gs.stability/10
-  ));
+  // GDP per capita: higher = more points (capped at 40)
+  const gdpPerCap = (gs.gdp * 1_000_000_000) / gs.population; // ₱ per person
+  const gdpPts = Math.min(40, gdpPerCap / 350_000); // ₱14M/person = 40pts
+
+  // National levels (max 40 pts combined)
+  const levelPts = Math.min(40, (gs.eduLevel + gs.infraLevel + gs.techLevel) / 7.5);
+
+  // Trade (max 10)
+  const tradePts = Math.min(10, Math.max(0, (gs.tradeBalance + 1000) / 200));
+
+  // Stability (max 10)
+  const stabPts = gs.stability / 10;
+
+  return Math.min(100, Math.max(0, gdpPts + levelPts + tradePts + stabPts));
 }
 
-// ─────────────────────────────────────────────────────────
-// 6. UNEMPLOYMENT
-// ─────────────────────────────────────────────────────────
-function calcUnemployment() {
-  const employed=Object.values(gs.workforce).reduce((a,b)=>a+b,0);
-  const rate=((Math.max(0,gs.laborForce-employed)/gs.laborForce)*100)+gs.unemploymentExtra;
-  return {employed,unemployed:Math.max(0,gs.laborForce-employed),rate:Math.min(100,rate)};
+/** Unemployment rate as percentage */
+function calcUnempRate() {
+  const laborForce = gs.domesticWorkers + gs.unemployed;
+  return Math.min(50, (gs.unemployed / laborForce) * 100 + gs.unempBonus);
 }
 
-// ─────────────────────────────────────────────────────────
-// 7. DIMINISHING RETURNS
-// ─────────────────────────────────────────────────────────
-function diminish(level){return Math.max(0.05,1-(level/120));}
-
-// ─────────────────────────────────────────────────────────
-// 8. NUMBER FORMATTERS
-//
-//  fmtPeople — for raw head counts (population, workers)
-//    120,000,000   → "120.0M"
-//    999,000,000   → "999.0M"
-//    1,000,000,000 → "1.00B"
-//    2,500,000,000 → "2.50B"
-//
-//  fmtGDP — for GDP numbers already expressed in ₱ Billions
-//    800   → "800.0B"
-//    1,500 → "1.50T"
-// ─────────────────────────────────────────────────────────
-function fmtPeople(n) {
-  if (n >= 1000000000) return (n/1000000000).toFixed(2)+'B';
-  if (n >= 1000000)    return (n/1000000).toFixed(1)+'M';
-  if (n >= 1000)       return (n/1000).toFixed(1)+'K';
-  return String(Math.round(n));
-}
-
-function fmtGDP(n) {
-  if (n >= 1000) return (n/1000).toFixed(2)+'T';
-  return n.toFixed(1)+'B';
-}
-
-// ─────────────────────────────────────────────────────────
-// 9. READ PLAYER INPUTS
-// ─────────────────────────────────────────────────────────
-function readPlayerInputs() {
-  const eduInvest   = +document.getElementById('sl-edu').value;
-  const infraInvest = +document.getElementById('sl-infra').value;
-  const techInvest  = +document.getElementById('sl-tech').value;
-  const exportDrive = +document.getElementById('sl-export').value;
-  const govSpend    = +document.getElementById('sl-gov').value;
-  const totalInvest = eduInvest+infraInvest+techInvest;
-
-  gs.eduLevel   = Math.min(100,Math.max(0,gs.eduLevel   -CONSTANTS.LEVEL_DECAY+eduInvest  *CONSTANTS.EDU_GAIN_PER_B  *diminish(gs.eduLevel)));
-  gs.infraLevel = Math.min(100,Math.max(0,gs.infraLevel -CONSTANTS.LEVEL_DECAY+infraInvest*CONSTANTS.INFRA_GAIN_PER_B*diminish(gs.infraLevel)));
-  gs.techLevel  = Math.min(100,Math.max(0,gs.techLevel  -CONSTANTS.LEVEL_DECAY+techInvest *CONSTANTS.TECH_GAIN_PER_B *diminish(gs.techLevel)));
-
-  gs.tradeBalance = (exportDrive/100)*gs.gdp*CONSTANTS.EXPORT_GDP_FACTOR*1000 - gs.gdp*CONSTANTS.IMPORT_DRAG*1000;
-
-  const taxRevenue = gs.gdp*CONSTANTS.TAX_RATE;
-  const spending   = taxRevenue*(govSpend/100)+totalInvest;
-  const surplus    = taxRevenue-spending;
-  gs.budget       += surplus;
-
-  if(surplus<0){ gs.debt=Math.min(200,gs.debt+(-surplus/gs.gdp)*100); }
-  else         { gs.debt=Math.max(0, gs.debt-(surplus/gs.gdp)*80); }
-
-  const {rate:unempRate}=calcUnemployment();
-  gs.stability=Math.max(0,Math.min(100,
-    gs.stability
-    -(gs.debt>80?(gs.debt-80)*0.1:0)
-    -(unempRate>15?(unempRate-15)*0.3:0)
-    +(surplus>0?1:-1)
-  ));
-
-  const total=readWorkforceSliders();
-  return {eduInvest,infraInvest,techInvest,exportDrive,govSpend,totalInvest,surplus,unempRate,total};
-}
-
-// ─────────────────────────────────────────────────────────
-// 10. WORKFORCE SLIDERS
-// ─────────────────────────────────────────────────────────
-function readWorkforceSliders() {
-  let total=0;
-  CONSTANTS.INDUSTRIES.forEach(ind=>{
-    const el=document.getElementById('wf-'+ind.id);
-    if(el){const pct=+el.value;total+=pct;gs.workforce[ind.id]=Math.floor(gs.laborForce*(pct/100));}
-  });
-  const warn=document.getElementById('alloc-warning');
-  if(Math.abs(total-100)>1){
-    warn.classList.remove('hidden');
-    const diff=100-total;
-    gs.workforce['svc']=Math.floor(gs.laborForce*((+document.getElementById('wf-svc').value+diff)/100));
-  } else { warn.classList.add('hidden'); }
-  return total;
-}
-
-// ─────────────────────────────────────────────────────────
-// 11. PICK EVENT
-// ─────────────────────────────────────────────────────────
-function pickEvent(){return WORLD_EVENTS[Math.floor(Math.random()*WORLD_EVENTS.length)];}
-
-// ─────────────────────────────────────────────────────────
-// 12. MAIN GAME LOOP
-// ─────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────
+// MAIN GAME LOOP
+// ─────────────────────────────────────────────────────
 function nextYear() {
-  if(gs.gameOver) return;
-  gs.turn++; gs.year++;
-  gs.gdpMultiplier=1.0; gs.unemploymentExtra=0;
+  if (gs.gameOver) return;
+  gs.turn++;
+  gs.year++;
+  gs.gdpMult   = 1.0;
+  gs.techBoost = 0;
+  gs.unempBonus = 0;
 
-  const inputs=readPlayerInputs();
-  const event=pickEvent();
+  // Read player inputs
+  const eduB = +document.getElementById('bs-edu').value;
+  const infB = +document.getElementById('bs-inf').value;
+  const tecB = +document.getElementById('bs-tec').value;
+  const socB = +document.getElementById('bs-soc').value;
+  const totalSpend = eduB + infB + tecB + socB;
+
+  const expLev = +document.getElementById('ls-exp').value; // 0-4
+  const ofwLev = +document.getElementById('ls-ofw').value; // 0-4
+  const indLev = +document.getElementById('ls-ind').value; // 0-4
+
+  // Fire a world event
+  const event = EVENTS[Math.floor(Math.random() * EVENTS.length)];
   event.effect(gs);
-  updateEventBox(event);
+  showEvent(event);
 
-  gs.totalPop      = Math.floor(gs.totalPop*(1+CONSTANTS.POP_GROWTH_RATE));
-  gs.workingAgePop = Math.floor(gs.totalPop*0.65);
-  gs.laborForce    = Math.floor(gs.workingAgePop*0.60);
+  // ── Population growth (~1.6%/year) ──
+  gs.population = Math.floor(gs.population * 1.016);
 
-  gs.prevGdp       = gs.gdp;
-  gs.gdp           = calcGDP();
-  gs.gdpGrowthRate = gs.prevGdp>0?((gs.gdp-gs.prevGdp)/gs.prevGdp)*100:0;
-  gs.budget        = gs.gdp*CONSTANTS.TAX_RATE+(inputs.surplus||0);
-  gs.score         = calcScore();
-  gs.negGdpYears   = gs.gdp<gs.prevGdp ? gs.negGdpYears+1 : 0;
+  // ── OFW dynamics ──
+  // OFW policy: 0 = keep home, 4 = max deploy
+  const ofwTarget = Math.floor(gs.population * (0.065 + ofwLev * 0.012)); // 6.5%–11.3% of pop
+  gs.ofwCount = Math.floor(gs.ofwCount * 0.96 + ofwTarget * 0.04); // smooth transition
+  // OFW remittances: ~$175/month per OFW, scaled to ₱
+  gs.remittances = Math.round(gs.ofwCount * 0.0000175 * (1 + ofwLev * 0.05));
 
-  const emp=calcUnemployment();
-  buildReport(emp,inputs,event);
-  addHistoryEntry(emp);
-  renderAll(emp);
-  checkEndConditions(emp);
+  // ── Domestic workforce ──
+  const workingAgePop = Math.floor(gs.population * 0.63);
+  const laborForce    = Math.floor(workingAgePop * 0.65); // LFPR ~65%
+  // Jobs created by industry focus and tech level
+  const jobGrowth = 1 + (indLev * 0.005) + (gs.techLevel * 0.0003);
+  gs.domesticWorkers = Math.min(laborForce - 500_000, Math.floor(gs.domesticWorkers * jobGrowth));
+  gs.unemployed = Math.max(0, laborForce - gs.domesticWorkers - gs.ofwCount);
+
+  // ── National Levels ──
+  // Level gain = investment / diminishing-returns-factor
+  const dim = l => Math.max(0.05, 1 - l / 130);
+  gs.eduLevel   = Math.min(100, Math.max(0, gs.eduLevel   - 1.0 + eduB * 0.018 * dim(gs.eduLevel)));
+  gs.infraLevel = Math.min(100, Math.max(0, gs.infraLevel - 1.2 + infB * 0.015 * dim(gs.infraLevel)));
+  gs.techLevel  = Math.min(100, Math.max(0, gs.techLevel  - 0.8 + tecB * 0.022 * dim(gs.techLevel) * (1 + gs.techBoost)));
+
+  // ── Trade balance ──
+  const exportFactor = (gs.techLevel * 0.6 + gs.infraLevel * 0.4) / 100;
+  gs.tradeBalance = -500 + (expLev * 200) + (exportFactor * 1000 * expLev * 0.5);
+
+  // ── Stability ──
+  const unempRate = calcUnempRate();
+  gs.stability = Math.max(0, Math.min(100,
+    gs.stability
+    + (socB * 0.015)               // social services help
+    - (unempRate > 8 ? (unempRate - 8) * 0.4 : 0)
+    - (gs.debt > 70  ? (gs.debt - 70)  * 0.08 : 0)
+    + (gs.stability < 50 ? -1 : 0.5)  // mean-revert pressure
+  ));
+
+  // ── Budget & Debt ──
+  const taxRev = Math.round(gs.gdp * 0.17);
+  gs.budget = taxRev;
+  const surplus = taxRev - totalSpend;
+  if (surplus < 0) {
+    gs.debt = Math.min(200, gs.debt + (-surplus / gs.gdp) * 100);
+  } else {
+    gs.debt = Math.max(0, gs.debt - (surplus / gs.gdp) * 80);
+  }
+
+  // ── GDP ──
+  gs.gdpPrev  = gs.gdp;
+  gs.gdp      = calcGDP();
+  gs.gdpGrowth = gs.gdpPrev > 0 ? ((gs.gdp - gs.gdpPrev) / gs.gdpPrev) * 100 : 0;
+  gs.negGdpYears = gs.gdp < gs.gdpPrev ? gs.negGdpYears + 1 : 0;
+
+  // ── Score ──
+  gs.score = calcScore();
+
+  // ── Advisor ──
+  setAdvisor(unempRate, surplus, event);
+
+  // ── Report ──
+  buildReport(unempRate, surplus, event);
+
+  // ── History ──
+  gs.history.unshift({ year: gs.year, gdp: gs.gdp, score: gs.score, unemp: unempRate, debt: gs.debt });
+  renderLog();
+
+  // ── Render ──
+  renderAll(unempRate);
+
+  // ── Check end conditions ──
+  checkEnd(unempRate);
 }
 
-// ─────────────────────────────────────────────────────────
-// 13. WIN / LOSE
-// ─────────────────────────────────────────────────────────
-function checkEndConditions(emp) {
-  if(gs.score>=CONSTANTS.MAX_SCORE_WIN){endGame(true,'🏆 Global Competitive Leader!',`In ${gs.year}, the Philippines reached a Competitiveness Score of ${gs.score.toFixed(1)} — surpassing 85. GDP is ₱${gs.gdp.toFixed(0)}B. Outstanding leadership!`);return;}
-  if(emp.rate>CONSTANTS.UNEMP_LOSE)   {endGame(false,'💀 Unemployment Crisis',`Unemployment hit ${emp.rate.toFixed(1)}%. Social collapse triggered. The economy has failed its people.`);return;}
-  if(gs.debt>CONSTANTS.DEBT_LOSE)     {endGame(false,'🏚️ Sovereign Debt Crisis',`Debt reached ${gs.debt.toFixed(1)}% of GDP. Creditors have pulled out. The nation is bankrupt.`);return;}
-  if(gs.negGdpYears>=CONSTANTS.NEG_GDP_LOSE){endGame(false,'📉 Economic Depression',`GDP declined ${gs.negGdpYears} years in a row. The economy is in freefall.`);return;}
+// ─────────────────────────────────────────────────────
+// ADVISOR TIPS
+// ─────────────────────────────────────────────────────
+function setAdvisor(unempRate, surplus, event) {
+  let msg = '';
+  // Priority: most urgent first
+  if (gs.debt > 120) {
+    msg = '🚨 Debt is critical! Cut ALL spending to minimum this turn or risk default. Your legacy cannot be bankruptcy.';
+  } else if (unempRate > 20) {
+    msg = '🚨 Unemployment is dangerously high. Increase Industry Focus and Social Services. Check that OFW policy is not too restrictive.';
+  } else if (gs.negGdpYears >= 2) {
+    msg = '⚠️ GDP has declined two years running. Never cut Education to zero — it is the foundation of growth. Boost Tech investment.';
+  } else if (gs.techLevel < 30 && gs.turn > 5) {
+    msg = '📊 Technology investment is low. The Philippines\' BPO sector is its biggest GDP-growth engine. Push Tech Budget higher.';
+  } else if (gs.eduLevel < 35) {
+    msg = '🎓 Education is falling behind. Without skilled workers, Tech and BPO investment won\'t help. Education first.';
+  } else if (gs.infraLevel < 25) {
+    msg = '🏗️ Infrastructure is weak. Poor roads and ports make doing business expensive. Businesses are considering Vietnam instead.';
+  } else if (surplus < 0) {
+    msg = '💸 You\'re running a budget deficit. Slightly reduce spending this year to stop debt rising. Small cuts, sustainable path.';
+  } else if (event.tip) {
+    msg = `💡 Advisor on this event: ${event.tip}`;
+  } else if (gs.score > 70) {
+    msg = '📈 Almost there! Keep investing in Technology and Education. Push Industry Focus toward Tech/BPO to close the gap.';
+  } else {
+    msg = '✅ Steady progress. Keep Education and Technology spending consistent. Avoid large deficits.';
+  }
+  document.getElementById('advisor-msg').textContent = msg;
 }
 
-function endGame(win,title,body) {
-  gs.gameOver=true;
-  document.getElementById('modal-icon').textContent  = win?'🏆':'💀';
-  document.getElementById('modal-title').textContent = title;
-  document.getElementById('modal-body').textContent  = body;
-  document.getElementById('modal-btn').textContent   = win?'PLAY AGAIN':'TRY AGAIN';
-  document.getElementById('modal-overlay').classList.remove('hidden');
+// ─────────────────────────────────────────────────────
+// PRESIDENTIAL REPORT
+// ─────────────────────────────────────────────────────
+function buildReport(unempRate, surplus, event) {
+  const g = gs.gdpGrowth;
+  const lines = [
+    { cls:'head', txt:`📅 Year ${gs.year} — Presidential Economic Report` },
+    { cls: g >= 0 ? 'good' : 'bad',
+      txt: `GDP: ₱${fmtB(gs.gdp)} (${g >= 0 ? '+' : ''}${g.toFixed(1)}% vs last year)` },
+    { cls: unempRate > 15 ? 'bad' : unempRate > 8 ? 'note' : 'good',
+      txt: `Unemployment: ${unempRate.toFixed(1)}% — ${fmtPpl(gs.unemployed)} jobless` },
+    { cls: gs.debt > 100 ? 'bad' : gs.debt > 70 ? 'note' : 'good',
+      txt: `Debt: ${gs.debt.toFixed(1)}% of GDP` },
+    { cls: surplus >= 0 ? 'good' : 'bad',
+      txt: `Budget: ${surplus >= 0 ? 'Surplus' : 'Deficit'} of ₱${fmtB(Math.abs(surplus))}` },
+    { cls: gs.tradeBalance >= 0 ? 'good' : 'note',
+      txt: `Trade: ${gs.tradeBalance >= 0 ? 'Surplus' : 'Deficit'} ₱${fmtB(Math.abs(gs.tradeBalance))}` },
+    { cls: 'note', txt: `OFW Remittances: ₱${fmtB(gs.remittances)} from ${fmtPpl(gs.ofwCount)} abroad` },
+    { cls: 'note', txt: `Competitiveness: ${gs.score.toFixed(1)} / 100 (need 85 to win)` },
+    {
+      cls: gs.score >= 85 ? 'good' : gs.score >= 65 ? 'note' : 'bad',
+      txt: gs.score >= 85 ? '🏆 WIN CONDITION MET!'
+         : gs.score >= 70 ? '📈 Almost there — push Technology harder!'
+         : gs.score >= 50 ? '⚙️ Making progress — stay consistent.'
+         :                  '⚠️ Low competitiveness — bold reforms needed!'
+    },
+  ];
+
+  document.getElementById('report-body').innerHTML =
+    lines.map(l => `<div class="rline ${l.cls}">${l.txt}</div>`).join('');
+}
+
+// ─────────────────────────────────────────────────────
+// EVENT DISPLAY
+// ─────────────────────────────────────────────────────
+function showEvent(ev) {
+  document.getElementById('ev-name').textContent   = ev.name;
+  document.getElementById('ev-desc').textContent   = ev.desc;
+  document.getElementById('ev-effect').textContent = '';
+}
+
+// ─────────────────────────────────────────────────────
+// WIN / LOSE
+// ─────────────────────────────────────────────────────
+function checkEnd(unempRate) {
+  if (gs.score >= 85) {
+    endGame(true, '🏆 The Philippines Wins!',
+      `In ${gs.year}, the Philippines achieved a Competitiveness Score of ${gs.score.toFixed(0)}! GDP reached ₱${fmtB(gs.gdp)}, ${fmtPpl(gs.ofwCount)} OFWs are sending record remittances home, and the nation is a global benchmark. Mabuhay ang Pilipinas!`);
+    return;
+  }
+  if (unempRate > 25) {
+    endGame(false, '💀 Unemployment Crisis',
+      `Unemployment hit ${unempRate.toFixed(1)}%. Millions of Filipinos are without work. Social unrest has made the economy ungovernable. Try investing more in Social Services and adjusting Industry Focus.`);
+    return;
+  }
+  if (gs.debt > 150) {
+    endGame(false, '🏚️ Sovereign Default',
+      `Government debt reached ${gs.debt.toFixed(0)}% of GDP. The Philippines cannot pay its lenders. The peso collapses. Remember: spending more than your budget every year creates a debt spiral.`);
+    return;
+  }
+  if (gs.negGdpYears >= 3) {
+    endGame(false, '📉 Economic Depression',
+      `GDP contracted for ${gs.negGdpYears} straight years. The economy is in freefall. Key lesson: never cut Education to zero during a crisis — it's the only thing that protects long-term output.`);
+    return;
+  }
+}
+
+function endGame(win, title, body) {
+  gs.gameOver = true;
+  document.getElementById('end-icon').textContent  = win ? '🏆' : '💀';
+  document.getElementById('end-title').textContent = title;
+  document.getElementById('end-body').textContent  = body;
+  document.getElementById('end-btn').textContent   = win ? 'Play Again' : 'Try Again';
+  document.getElementById('end-overlay').classList.remove('hidden');
 }
 
 function resetGame() {
-  document.getElementById('modal-overlay').classList.add('hidden');
+  document.getElementById('end-overlay').classList.add('hidden');
+  // Reset sliders
+  document.getElementById('bs-edu').value = 20;
+  document.getElementById('bs-inf').value = 15;
+  document.getElementById('bs-tec').value = 10;
+  document.getElementById('bs-soc').value = 15;
+  document.getElementById('ls-exp').value = 2;
+  document.getElementById('ls-ofw').value = 2;
+  document.getElementById('ls-ind').value = 2;
   initGameState();
-  document.getElementById('sl-edu').value    = 10;
-  document.getElementById('sl-infra').value  = 8;
-  document.getElementById('sl-tech').value   = 5;
-  document.getElementById('sl-export').value = 50;
-  document.getElementById('sl-gov').value    = 40;
-  document.getElementById('val-edu').textContent    = 10;
-  document.getElementById('val-infra').textContent  = 8;
-  document.getElementById('val-tech').textContent   = 5;
-  document.getElementById('val-export').textContent = 50;
-  document.getElementById('val-gov').textContent    = 40;
-  document.getElementById('bar-edu').style.width    = '16%';
-  document.getElementById('bar-infra').style.width  = '13%';
-  document.getElementById('bar-tech').style.width   = '8%';
-  CONSTANTS.INDUSTRIES.forEach(ind=>{
-    const el=document.getElementById('wf-'+ind.id);
-    if(el){el.value=ind.defaultPct;document.getElementById('wfval-'+ind.id).textContent=ind.defaultPct+'%';}
-  });
-  document.getElementById('report-content').innerHTML='<p class="report-placeholder">Your annual economic summary will appear here after each turn.</p>';
-  document.getElementById('log-list').innerHTML='';
-  document.getElementById('event-name').textContent='—';
-  document.getElementById('event-desc').textContent='Press "Advance Year" to start simulation.';
-  document.getElementById('event-effect').textContent='';
-  renderAll(calcUnemployment());
+  onBudget();
+  onLevers();
+  document.getElementById('report-body').innerHTML = '<p class="card-desc">Your annual report will appear here after each turn.</p>';
+  document.getElementById('log-body').innerHTML = '';
+  document.getElementById('ev-name').textContent = '—';
+  document.getElementById('ev-desc').textContent = 'Advance the year to see this year\'s global event.';
+  document.getElementById('ev-effect').textContent = '';
+  document.getElementById('advisor-msg').textContent = 'Welcome back, Mr./Ms. President. Ready for a new term?';
+  renderAll(calcUnempRate());
 }
 
-// ─────────────────────────────────────────────────────────
-// 14. RENDER ALL
-// ─────────────────────────────────────────────────────────
-function renderAll(emp) {
-  document.getElementById('hdr-year').textContent    = gs.year;
-  document.getElementById('hdr-gdp').textContent     = '₱'+fmtGDP(gs.gdp);
-  document.getElementById('hdr-score').textContent   = gs.score.toFixed(1);
-  document.getElementById('year-display').textContent = gs.year;
+// ─────────────────────────────────────────────────────
+// RENDER
+// ─────────────────────────────────────────────────────
+function renderAll(unempRate) {
+  // Header
+  document.getElementById('h-year').textContent  = gs.year;
+  document.getElementById('h-score').innerHTML   = `${Math.round(gs.score)}<small>/100</small>`;
+  document.getElementById('turn-year').textContent = gs.year;
 
-  const statusEl=document.getElementById('hdr-status');
-  const chip=document.getElementById('hdr-status-chip');
-  let status='STABLE',chipColor='var(--green)';
-  if(gs.stability<30||emp.rate>20||gs.debt>100){status='CRISIS';chipColor='var(--red)';}
-  else if(gs.stability<50||emp.rate>15||gs.debt>70){status='AT RISK';chipColor='var(--amber)';}
-  statusEl.textContent=status;
-  chip.style.borderColor=chipColor;
-  chip.style.background=chipColor+'22';
-  statusEl.style.color=chipColor;
-
-  // Population and workforce use fmtPeople (raw head counts)
-  document.getElementById('kpi-pop').textContent    = fmtPeople(gs.totalPop);
-  document.getElementById('kpi-emp').textContent    = fmtPeople(emp.employed);
-  document.getElementById('kpi-unemp').textContent  = emp.rate.toFixed(1)+'%';
-  // GDP and budget use fmtGDP (already in ₱ Billions)
-  document.getElementById('kpi-gdp').textContent    = '₱'+fmtGDP(gs.gdp);
-  document.getElementById('kpi-budget').textContent = '₱'+fmtGDP(gs.budget);
-  document.getElementById('kpi-debt').textContent   = gs.debt.toFixed(1)+'%';
-  document.getElementById('kpi-trade').textContent  = (gs.tradeBalance>=0?'+':'')+'₱'+gs.tradeBalance.toFixed(1)+'B';
-  document.getElementById('kpi-negyr').textContent  = gs.negGdpYears+' / '+CONSTANTS.NEG_GDP_LOSE;
-
-  const debtEl=document.getElementById('kpi-debt');
-  debtEl.style.color=gs.debt>100?'var(--red)':gs.debt>60?'var(--amber)':'var(--green)';
-
-  updateLevelBar('edu',  gs.eduLevel);
-  updateLevelBar('infra',gs.infraLevel);
-  updateLevelBar('tech', gs.techLevel);
-  updateLevelBar('stab', gs.stability);
-  updateLevelBadge('lv-edu',  gs.eduLevel);
-  updateLevelBadge('lv-infra',gs.infraLevel);
-  updateLevelBadge('lv-tech', gs.techLevel);
-
-  const arc=document.getElementById('score-arc');
-  arc.style.strokeDashoffset=213.5-(gs.score/100)*213.5;
-  document.getElementById('score-ring-text').textContent=Math.round(gs.score);
-  arc.style.stroke=gs.score>=85?'var(--green)':gs.score>=55?'var(--cyan)':gs.score>=35?'var(--amber)':'var(--red)';
-}
-
-function updateLevelBar(key,val){
-  const f=document.getElementById('lvbar-'+key);
-  const n=document.getElementById('lvnum-'+key);
-  if(f)f.style.width=Math.min(100,val)+'%';
-  if(n)n.textContent=Math.round(val);
-}
-function updateLevelBadge(id,val){
-  const el=document.getElementById(id);
-  if(el)el.textContent='LV'+Math.floor(val/20);
-}
-
-// ─────────────────────────────────────────────────────────
-// 15. ANNUAL REPORT
-// ─────────────────────────────────────────────────────────
-function buildReport(emp,inputs,event) {
-  const g=gs.gdpGrowthRate;
-  const lines=[
-    {cls:'head',txt:`📅 Year ${gs.year} — Annual Economic Report`},
-    {cls:g>=0?'good':'bad',    txt:`GDP: ₱${gs.gdp.toFixed(1)}B (${g>=0?'+':''}${g.toFixed(2)}% vs last year)`},
-    {cls:emp.rate>20?'bad':emp.rate>12?'note':'good', txt:`Unemployment: ${emp.rate.toFixed(1)}% (${fmtPeople(emp.employed)} employed)`},
-    {cls:gs.debt>100?'bad':gs.debt>60?'note':'good',  txt:`Debt: ${gs.debt.toFixed(1)}% of GDP`},
-    {cls:gs.tradeBalance>=0?'good':'note',             txt:`Trade Balance: ${gs.tradeBalance>=0?'+':''}₱${gs.tradeBalance.toFixed(1)}B`},
-    {cls:'note',txt:`Budget Surplus/Deficit: ${inputs.surplus>=0?'+':''}₱${(inputs.surplus||0).toFixed(1)}B`},
-    {cls:'note',txt:`World Event: ${event.name} → ${event.display}`},
-    {cls:'note',txt:`Competitiveness Score: ${gs.score.toFixed(1)} / 100`},
-    {cls:gs.score>=85?'good':gs.score>=55?'note':'bad',
-     txt:gs.score>=85?'🏆 WIN CONDITION MET!':gs.score>=70?'📈 Close to winning — keep investing!':gs.score>=50?'⚙️ Mid-tier economy — push harder.':'⚠️ Low competitiveness — urgent action needed!'},
-  ];
-  document.getElementById('report-content').innerHTML=lines.map(l=>`<div class="report-line ${l.cls}">${l.txt}</div>`).join('');
-}
-
-// ─────────────────────────────────────────────────────────
-// 16. HISTORY LOG
-// ─────────────────────────────────────────────────────────
-function addHistoryEntry(emp) {
-  gs.history.unshift({year:gs.year,gdp:gs.gdp,score:gs.score,unemp:emp.rate,debt:gs.debt});
-  document.getElementById('log-list').innerHTML=gs.history.slice(0,15).map(h=>
-    `<div class="log-entry"><span class="log-year">${h.year}</span><span>GDP ₱${h.gdp.toFixed(0)}B | Score ${h.score.toFixed(0)} | Unemp ${h.unemp.toFixed(1)}% | Debt ${h.debt.toFixed(0)}%</span></div>`
-  ).join('');
-}
-
-// ─────────────────────────────────────────────────────────
-// 17. EVENT BOX
-// ─────────────────────────────────────────────────────────
-function updateEventBox(event) {
-  document.getElementById('event-name').textContent  =event.name;
-  document.getElementById('event-desc').textContent  =event.desc;
-  document.getElementById('event-effect').textContent='→ '+event.display;
-}
-
-// ─────────────────────────────────────────────────────────
-// 18. SLIDER HELPERS
-// ─────────────────────────────────────────────────────────
-function updateSliderLabel(sliderId,labelId) {
-  const val=document.getElementById(sliderId).value;
-  document.getElementById(labelId).textContent=val;
-  const barMap={'sl-edu':'bar-edu','sl-infra':'bar-infra','sl-tech':'bar-tech'};
-  const barId=barMap[sliderId];
-  if(barId){const max=+document.getElementById(sliderId).max;document.getElementById(barId).style.width=(val/max*100)+'%';}
-}
-
-function updateIndLabel(indId) {
-  document.getElementById('wfval-'+indId).textContent=document.getElementById('wf-'+indId).value+'%';
-}
-
-// ─────────────────────────────────────────────────────────
-// 19. BUILD INDUSTRY SLIDERS
-// ─────────────────────────────────────────────────────────
-const INDUSTRY_TIPS = {
-  agri: 'Agriculture: ₱4.5B per million workers. High employment but low output. Great for keeping unemployment low early game. Reduce allocation as Tech level grows and you can afford to shift workers.',
-  mfg:  'Manufacturing: ₱12B per million workers. Your mid-game engine. Responds well to high Infrastructure levels. Aim for 15–25% throughout the game.',
-  svc:  'Services: ₱9B per million workers. Your largest default sector and safety net. Any unallocated labor auto-flows here. Keep at 25–35%.',
-  tech: 'Technology: ₱28B per million workers — the HIGHEST output! This is your WIN CONDITION. Invest heavily in Tech Level first, then shift workers here. Target 15–25% once Tech Level exceeds 40.',
-  gov:  'Government: ₱5B per million workers. Anchors national stability. Keep between 5–10%. Too low = instability spike. Too high = wasted high-productivity slots.',
-  edu:  'Education sector: ₱4B per million workers. Supports your Education Level growth passively. A 3–7% allocation is fine — the Education INVESTMENT SLIDER matters far more.',
-  infra:'Infrastructure workers: ₱7B per million workers. Rebuilds national infrastructure capacity. Increase to 5–8% the year after a Natural Disaster event. Otherwise 2–4% is typical.',
-};
-
-function buildIndustrySliders() {
-  const container=document.getElementById('industry-sliders');
-  container.innerHTML=CONSTANTS.INDUSTRIES.map(ind=>`
-    <div class="ind-slider-row" data-tip="${INDUSTRY_TIPS[ind.id]||''}">
-      <span class="ind-label">${ind.name}</span>
-      <input type="range" min="0" max="80" value="${ind.defaultPct}" id="wf-${ind.id}" oninput="updateIndLabel('${ind.id}')" style="accent-color:${ind.color};" />
-      <span class="ind-val" id="wfval-${ind.id}">${ind.defaultPct}%</span>
-    </div>`
-  ).join('');
-}
-
-// ─────────────────────────────────────────────────────────
-// 20. SECTION TOOLTIPS
-//     Rich contextual help on every major panel block
-// ─────────────────────────────────────────────────────────
-function applyInlineTips() {
-  const tips = {
-    'tip-human-capital':
-      '🧠 HUMAN CAPITAL — Three national capability levels (each 0–100).\n\n' +
-      '🎓 Education → multiplies productivity for EVERY worker across ALL industries. The most important long-term investment.\n\n' +
-      '🏗️ Infrastructure → reduces economic drag. Critical for Manufacturing, Agriculture, and Trade.\n\n' +
-      '💡 Technology → highest GDP multiplier. Essential to make Technology industry workers earn ₱28B/M.\n\n' +
-      'HOW LEVELS WORK: Invest ₱B/year → level rises. Stop investing → level decays 0.8/year. Gains diminish at high levels.\n\n' +
-      '💡 TIP: Never cut all three to zero at once, even in crisis years.',
-
-    'tip-workforce':
-      '👷 WORKFORCE ALLOCATION — How to split your labor force across 7 industries.\n\n' +
-      'HOW IT WORKS: Your total labor force (60% of working-age population) is divided by the percentages you set. Workers produce GDP = workers × industry rate × national productivity multiplier.\n\n' +
-      '⚠️ TOTAL MUST = 100%: Any shortfall auto-corrects to Services — but this can distort your strategy.\n\n' +
-      '⚠️ UNEMPLOYMENT DANGER: If sliders total less than 100% AND many workers are unallocated, unemployment rises. Above 25% → GAME OVER.\n\n' +
-      '💡 STRATEGY: Start heavy in Agriculture + Services (employment base), then shift toward Technology as your Tech Level grows past 40.',
-
-    'tip-trade-fiscal':
-      '🌍 TRADE & FISCAL — Two levers controlling money flows.\n\n' +
-      '📤 EXPORT DRIVE (0–100):\n' +
-      '• Higher = more export income, better trade balance\n' +
-      '• Risk: Trade Wars and Recessions hurt more\n' +
-      '• 50–70 is a safe starting range\n\n' +
-      '💰 GOVERNMENT SPENDING (% of budget):\n' +
-      '• Higher % → better stability, more public services\n' +
-      '• Lower % → more surplus, faster debt paydown\n' +
-      '• ⚠️ Keep Debt below 80% GDP (safe zone). Above 150% → GAME OVER.\n\n' +
-      '💡 TIP: During Recession years, LOWER gov spending % to prevent a deficit spiral.',
-
-    'tip-national-levels':
-      '📡 NATIONAL LEVELS — Live progress bars for your 4 key indices.\n\n' +
-      '🔵 Education: Multiplies all worker productivity. Build to 60–80 to win.\n' +
-      '🟠 Infrastructure: Physical backbone. Collapses after Natural Disasters — rebuild fast.\n' +
-      '🟢 Technology: Most critical for Competitiveness Score. Push to 60+ to win.\n' +
-      '🟣 Stability: Social cohesion. Falls with high unemployment or debt. If it hits 0 → crisis deepens.\n\n' +
-      'LV badge = tier (LV0–LV4, every 20 points). LV3+ is where multipliers get powerful.\n\n' +
-      '💡 TIP: These update AFTER you press ▶ Advance Year — plan a year ahead!',
-  };
-
-  Object.entries(tips).forEach(([id,tip])=>{
-    const el=document.getElementById(id);
-    if(el) el.dataset.tip=tip;
-  });
-}
-
-// ─────────────────────────────────────────────────────────
-// 21. TOOLTIP ENGINE
-// ─────────────────────────────────────────────────────────
-function initTooltips() {
-  const box=document.getElementById('tooltip-box');
-  if(!box) return;
-  let hideTimer=null;
-
-  function showTip(text,cx,cy) {
-    clearTimeout(hideTimer);
-    box.innerHTML=text.replace(/\n/g,'<br>');
-    box.classList.add('visible');
-    placeTip(cx,cy);
+  // Status chip
+  const statusEl = document.getElementById('h-status');
+  const chip     = document.getElementById('hstat-status');
+  let status = 'STABLE', bc = 'var(--green)', tc = 'var(--green)';
+  if (gs.stability < 30 || unempRate > 20 || gs.debt > 110) {
+    status = 'CRISIS'; bc = 'rgba(248,81,73,0.2)'; tc = 'var(--red)';
+  } else if (gs.stability < 50 || unempRate > 12 || gs.debt > 80) {
+    status = 'AT RISK'; bc = 'rgba(210,153,34,0.15)'; tc = 'var(--amber)';
   }
+  statusEl.textContent = status;
+  statusEl.style.color = tc;
+  chip.style.background = bc;
+  chip.style.borderColor = tc;
 
-  function placeTip(cx,cy) {
-    const pad=16, bw=Math.min(box.offsetWidth||280,280), bh=box.offsetHeight||100;
-    let x=cx+pad, y=cy+pad;
-    if(x+bw>window.innerWidth-8)  x=cx-bw-pad;
-    if(y+bh>window.innerHeight-8) y=cy-bh-pad;
-    box.style.left=Math.max(8,x)+'px';
-    box.style.top =Math.max(8,y)+'px';
-  }
+  // Nation grid
+  document.getElementById('v-pop').textContent    = fmtPpl(gs.population);
+  document.getElementById('v-work').textContent   = fmtPpl(gs.domesticWorkers);
+  document.getElementById('v-ofw').textContent    = fmtPpl(gs.ofwCount);
+  const uEl = document.getElementById('v-unemp');
+  uEl.textContent = unempRate.toFixed(1) + '%';
+  uEl.style.color = unempRate > 15 ? 'var(--red)' : unempRate > 8 ? 'var(--amber)' : 'var(--green)';
+  document.getElementById('v-gdp').textContent    = '₱' + fmtB(gs.gdp);
+  document.getElementById('v-remit').textContent  = '₱' + fmtB(gs.remittances);
+  document.getElementById('v-budget').textContent = '₱' + fmtB(gs.budget);
+  const dEl = document.getElementById('v-debt');
+  dEl.textContent = gs.debt.toFixed(1) + '%';
+  dEl.style.color = gs.debt > 100 ? 'var(--red)' : gs.debt > 70 ? 'var(--amber)' : 'var(--green)';
 
-  function hideTip() {
-    clearTimeout(hideTimer);
-    hideTimer=setTimeout(()=>box.classList.remove('visible'),120);
-  }
+  // National levels
+  setBar('lb-edu','ln-edu', gs.eduLevel);
+  setBar('lb-inf','ln-inf', gs.infraLevel);
+  setBar('lb-tec','ln-tec', gs.techLevel);
+  setBar('lb-sta','ln-sta', gs.stability);
 
-  document.addEventListener('mouseover',e=>{
-    const el=e.target.closest('[data-tip]');
-    if(el&&el.dataset.tip&&el.dataset.tip.trim()) showTip(el.dataset.tip,e.clientX,e.clientY);
-  });
-  document.addEventListener('mousemove',e=>{
-    if(box.classList.contains('visible')) placeTip(e.clientX,e.clientY);
-  });
-  document.addEventListener('mouseout',e=>{
-    if(e.target.closest('[data-tip]')) hideTip();
-  });
-  // Mobile: tap to toggle
-  document.addEventListener('touchstart',e=>{
-    const el=e.target.closest('[data-tip]');
-    if(el&&el.dataset.tip&&el.dataset.tip.trim()){
-      const t=e.touches[0];
-      showTip(el.dataset.tip,t.clientX,t.clientY);
-    } else { hideTip(); }
-  },{passive:true});
+  // Win bar
+  const score = Math.min(100, gs.score);
+  document.getElementById('win-fill').style.width  = score + '%';
+  document.getElementById('win-nums').textContent  = Math.round(score) + ' / 85';
+  const wc = document.getElementById('win-fill');
+  wc.style.background = score >= 85 ? 'var(--green)'
+    : score >= 60 ? 'linear-gradient(90deg,var(--edu),var(--tec))'
+    : 'linear-gradient(90deg,var(--edu),var(--inf))';
+
+  // Map overlay
+  document.getElementById('mo-score').textContent = Math.round(gs.score);
+  document.getElementById('mo-year').textContent  = gs.year;
+  const gdpCap = Math.round((gs.gdp * 1_000_000_000) / gs.population);
+  document.getElementById('mo-gdpcap').textContent = '₱' + fmtPpl(gdpCap);
+  document.getElementById('mo-trade').textContent =
+    (gs.tradeBalance >= 0 ? '+' : '') + '₱' + fmtB(Math.abs(gs.tradeBalance));
+
+  // Danger meters
+  setDanger('d-unemp','dn-unemp', unempRate, 25, '%');
+  setDanger('d-debt', 'dn-debt',  gs.debt,   150, '%');
+  setDanger('d-neg',  'dn-neg',   gs.negGdpYears, 3, 'yr');
 }
 
-// ─────────────────────────────────────────────────────────
-// 22. GUIDE MODAL
-// ─────────────────────────────────────────────────────────
+function setBar(fillId, numId, val) {
+  const f = document.getElementById(fillId);
+  const n = document.getElementById(numId);
+  if (f) f.style.width = Math.min(100, Math.max(0, val)) + '%';
+  if (n) n.textContent = Math.round(val);
+}
+
+function setDanger(fillId, numId, val, max, unit) {
+  const pct = Math.min(100, (val / max) * 100);
+  const f   = document.getElementById(fillId);
+  const n   = document.getElementById(numId);
+  if (f) f.style.width = pct + '%';
+  if (n) {
+    n.textContent = (typeof val === 'number' && !Number.isInteger(val))
+      ? val.toFixed(1) + unit
+      : val + unit;
+    n.style.color = pct > 80 ? 'var(--red)' : pct > 50 ? 'var(--amber)' : 'var(--green)';
+  }
+}
+
+function renderLog() {
+  document.getElementById('log-body').innerHTML =
+    gs.history.slice(0, 15).map(h =>
+      `<div class="log-entry">
+        <span class="log-yr">${h.year}</span>
+        <span>GDP ₱${fmtB(h.gdp)} | Score ${Math.round(h.score)} | Unemp ${h.unemp.toFixed(1)}% | Debt ${Math.round(h.debt)}%</span>
+      </div>`
+    ).join('');
+}
+
+// ─────────────────────────────────────────────────────
+// UI HANDLERS (budget + lever live update)
+// ─────────────────────────────────────────────────────
+function onBudget() {
+  const edu = +document.getElementById('bs-edu').value;
+  const inf = +document.getElementById('bs-inf').value;
+  const tec = +document.getElementById('bs-tec').value;
+  const soc = +document.getElementById('bs-soc').value;
+  document.getElementById('bv-edu').textContent = edu;
+  document.getElementById('bv-inf').textContent = inf;
+  document.getElementById('bv-tec').textContent = tec;
+  document.getElementById('bv-soc').textContent = soc;
+
+  const total = edu + inf + tec + soc;
+  const avail = gs.budget || Math.round(gs.gdp * 0.17);
+  const rem   = avail - total;
+  const pct   = Math.min(100, (total / avail) * 100);
+
+  document.getElementById('budget-avail').textContent = '₱' + avail + 'B';
+  document.getElementById('budget-spent').textContent = '₱' + total + 'B';
+  document.getElementById('budget-rem').textContent   = (rem >= 0 ? '₱' : '-₱') + Math.abs(rem) + 'B';
+
+  const fill = document.getElementById('brb-fill');
+  fill.style.width = Math.min(120, pct) + '%';
+  fill.style.background = rem < 0 ? 'var(--red)' : rem < avail * 0.1 ? 'var(--amber)' : 'var(--green)';
+
+  const cap = document.getElementById('brb-caption');
+  cap.textContent = rem < 0
+    ? `⚠️ Over budget by ₱${Math.abs(rem)}B — debt will increase`
+    : rem === 0 ? '✅ Exactly on budget'
+    : `✅ ₱${rem}B surplus — debt will decrease`;
+  cap.style.color = rem < 0 ? 'var(--red)' : 'var(--green)';
+}
+
+function onLevers() {
+  const expV = +document.getElementById('ls-exp').value;
+  const ofwV = +document.getElementById('ls-ofw').value;
+  const indV = +document.getElementById('ls-ind').value;
+  document.getElementById('lv-exp').textContent = LEVER_LABELS.exp[expV];
+  document.getElementById('lv-ofw').textContent = LEVER_LABELS.ofw[ofwV];
+  document.getElementById('lv-ind').textContent = LEVER_LABELS.ind[indV];
+}
+
+// ─────────────────────────────────────────────────────
+// GUIDE + INFO MODALS (click-based, NO hover)
+// ─────────────────────────────────────────────────────
 function openGuide() {
   document.getElementById('guide-overlay').classList.remove('hidden');
-  document.body.style.overflow='hidden';
+  document.body.style.overflow = 'hidden';
 }
-
 function closeGuide() {
   document.getElementById('guide-overlay').classList.add('hidden');
-  document.body.style.overflow='';
+  document.body.style.overflow = '';
+}
+function showTab(tabId, btn) {
+  document.querySelectorAll('.gtab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.gtab').forEach(b => b.classList.remove('active'));
+  const tab = document.getElementById('tab-' + tabId);
+  if (tab) tab.classList.add('active');
+  if (btn) btn.classList.add('active');
+}
+function openInfo(key) {
+  const content = INFO[key] || '<p>No info available.</p>';
+  const titles  = { levels: '📡 National Levels', budget: '💰 Budget System', levers: '🎛️ Economic Levers' };
+  document.getElementById('info-title').textContent = titles[key] || 'Info';
+  document.getElementById('info-body').innerHTML    = content;
+  document.getElementById('info-overlay').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+}
+function closeInfo() {
+  document.getElementById('info-overlay').classList.add('hidden');
+  document.body.style.overflow = '';
 }
 
-function showTab(tabId,btn) {
-  document.querySelectorAll('.guide-tab-content').forEach(t=>t.classList.remove('active'));
-  document.querySelectorAll('.gtab').forEach(t=>t.classList.remove('active'));
-  const tab=document.getElementById('tab-'+tabId);
-  if(tab) tab.classList.add('active');
-  if(btn) btn.classList.add('active');
+// ─────────────────────────────────────────────────────
+// FORMATTERS
+// ─────────────────────────────────────────────────────
+
+/** Format a raw person count: 10,600,000 → "10.6M" */
+function fmtPpl(n) {
+  if (n >= 1_000_000_000) return (n / 1_000_000_000).toFixed(2) + 'B';
+  if (n >= 1_000_000)     return (n / 1_000_000).toFixed(1) + 'M';
+  if (n >= 1_000)         return (n / 1_000).toFixed(0) + 'K';
+  return String(Math.round(n));
 }
 
-// ─────────────────────────────────────────────────────────
-// 23. STARTUP
-//     All DOM wiring inside DOMContentLoaded.
-//     Globals exposed at the end so inline onclick="" works.
-// ─────────────────────────────────────────────────────────
-window.addEventListener('DOMContentLoaded',()=>{
-  buildIndustrySliders();
-  applyInlineTips();
-  initTooltips();
+/** Format a GDP/budget number already in ₱ Billions:
+ *  26,000 → "26,000B"  or  "26.0T" */
+function fmtB(n) {
+  if (Math.abs(n) >= 1_000) return (n / 1_000).toFixed(1) + 'T';
+  return Math.round(n) + 'B';
+}
+
+// ─────────────────────────────────────────────────────
+// STARTUP
+// ─────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
   initGameState();
-  renderAll(calcUnemployment());
+  onBudget();
+  onLevers();
+  renderAll(calcUnempRate());
 
-  document.getElementById('bar-edu').style.width   ='16%';
-  document.getElementById('bar-infra').style.width ='13%';
-  document.getElementById('bar-tech').style.width  ='8%';
-
-  // Close guide on backdrop click
-  const overlay=document.getElementById('guide-overlay');
-  if(overlay) overlay.addEventListener('click',e=>{if(e.target===overlay)closeGuide();});
-
-  // Expose all functions inline onclick="" attributes need
-  Object.assign(window,{
-    nextYear, resetGame, openGuide, closeGuide, showTab,
-    updateSliderLabel, updateIndLabel,
+  // Expose all functions for inline onclick
+  Object.assign(window, {
+    nextYear, resetGame, openGuide, closeGuide, showTab, openInfo, closeInfo,
+    onBudget, onLevers,
   });
 
-  console.log('🌏 Geo-Economics Simulator loaded.');
+  console.log('🇵🇭 PH Nation Builder loaded. Starting GDP: ₱' + fmtB(gs.gdp) + ' | Population: ' + fmtPpl(gs.population));
 });

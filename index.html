@@ -1,553 +1,322 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Geo-Economics Simulator</title>
-  <link rel="stylesheet" href="style.css" />
-  <!-- Google Fonts: Rajdhani (display) + Source Serif 4 (body) -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Source+Serif+4:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet" />
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>🇵🇭 PH Nation Builder</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fira+Mono:wght@500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
 
-<!-- ═══════════════════════════════════════════════════
-     TOP BAR
-═══════════════════════════════════════════════════ -->
-<header id="topbar">
-  <div id="topbar-left">
-    <span id="game-title">🌏 GEO-ECONOMICS SIMULATOR</span>
-    <span id="country-badge">🇵🇭 Republic of the Philippines</span>
+<!-- HEADER -->
+<header id="header">
+  <div id="header-left">
+    <span id="flag">🇵🇭</span>
+    <div>
+      <div id="game-name">PH Nation Builder</div>
+      <div id="game-sub">You are the President. Every decision shapes the nation.</div>
+    </div>
   </div>
-  <div id="topbar-right">
-    <div class="stat-chip">
-      <span class="chip-label">YEAR</span>
-      <span class="chip-value" id="hdr-year">2025</span>
-    </div>
-    <div class="stat-chip">
-      <span class="chip-label">GDP</span>
-      <span class="chip-value" id="hdr-gdp">—</span>
-    </div>
-    <div class="stat-chip">
-      <span class="chip-label">SCORE</span>
-      <span class="chip-value" id="hdr-score">—</span>
-    </div>
-    <div class="stat-chip pulse-chip" id="hdr-status-chip">
-      <span class="chip-value" id="hdr-status">STABLE</span>
-    </div>
-    <button id="how-to-play-btn" onclick="openGuide()">❓ How to Play</button>
+  <div id="header-right">
+    <div class="hstat"><div class="hstat-label">YEAR</div><div class="hstat-val" id="h-year">2025</div></div>
+    <div class="hstat"><div class="hstat-label">SCORE</div><div class="hstat-val" id="h-score">0<small>/100</small></div></div>
+    <div class="hstat" id="hstat-status"><div class="hstat-label">STATUS</div><div class="hstat-val" id="h-status">STABLE</div></div>
+    <button class="guide-btn" onclick="openGuide()">📖 Guide</button>
   </div>
 </header>
 
-<!-- ═══════════════════════════════════════════════════
-     MAIN LAYOUT
-═══════════════════════════════════════════════════ -->
 <main id="app">
 
-  <!-- LEFT PANEL: Map + Key Stats -->
-  <aside id="left-panel">
+<!-- ═══ LEFT PANEL ═══ -->
+<section id="panel-left">
 
-    <div id="map-container">
-      <div id="map-label">Philippines</div>
-      <!-- SVG Map — recognizable Philippines silhouette -->
-      <svg id="ph-map" viewBox="0 0 240 560" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <filter id="island-glow">
-            <feGaussianBlur stdDeviation="2.5" result="coloredBlur"/>
-            <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
-          </filter>
-        </defs>
+  <div class="card">
+    <div class="card-title">🏝️ Nation Dashboard</div>
+    <div id="nation-grid">
+      <div class="nstat"><div class="nstat-icon">👥</div><div><div class="nstat-label">Population</div><div class="nstat-val" id="v-pop">—</div></div></div>
+      <div class="nstat"><div class="nstat-icon">💼</div><div><div class="nstat-label">Domestic Workers</div><div class="nstat-val" id="v-work">—</div></div></div>
+      <div class="nstat"><div class="nstat-icon">✈️</div><div><div class="nstat-label">OFWs Abroad</div><div class="nstat-val" id="v-ofw">—</div></div></div>
+      <div class="nstat nstat-warn"><div class="nstat-icon">⚠️</div><div><div class="nstat-label">Unemployed</div><div class="nstat-val" id="v-unemp">—</div></div></div>
+      <div class="nstat"><div class="nstat-icon">📊</div><div><div class="nstat-label">GDP (₱ B)</div><div class="nstat-val" id="v-gdp">—</div></div></div>
+      <div class="nstat"><div class="nstat-icon">💵</div><div><div class="nstat-label">Remittances (₱ B)</div><div class="nstat-val" id="v-remit">—</div></div></div>
+      <div class="nstat"><div class="nstat-icon">🏦</div><div><div class="nstat-label">Gov Budget (₱ B)</div><div class="nstat-val" id="v-budget">—</div></div></div>
+      <div class="nstat"><div class="nstat-icon">💸</div><div><div class="nstat-label">Debt % GDP</div><div class="nstat-val" id="v-debt">—</div></div></div>
+    </div>
+  </div>
 
-        <!-- ── LUZON (main large island, north) ── -->
-        <!-- Northwestern coast (Ilocos region down) → tip of Cagayan Valley → Sierra Madre →
-             down to Bondoc Peninsula → back up western coast via Manila Bay -->
-        <path class="island active-island" id="luzon"
-          d="
-            M 118,14  L 126,18  L 132,24  L 138,22  L 144,26
-            L 148,34  L 150,42  L 146,50  L 140,56  L 136,64
-            L 138,72  L 142,78  L 148,84  L 152,92  L 154,100
-            L 156,108 L 158,116 L 160,124 L 158,132 L 154,138
-            L 150,144 L 152,152 L 158,160 L 162,168 L 160,176
-            L 156,182 L 150,186 L 144,190 L 140,196 L 138,202
-            L 136,210 L 132,218 L 128,224 L 122,228 L 116,232
-            L 110,236 L 106,242 L 108,250 L 112,256 L 110,262
-            L 104,266 L  98,268 L  92,264 L  86,258 L  82,252
-            L  78,246 L  76,240 L  74,234 L  72,226 L  70,218
-            L  68,210 L  66,202 L  64,194 L  62,186 L  60,178
-            L  58,170 L  58,162 L  60,154 L  64,148 L  68,142
-            L  70,134 L  68,126 L  64,118 L  60,110 L  58,102
-            L  58, 94 L  60, 86 L  64, 80 L  68, 74 L  72, 68
-            L  76, 62 L  78, 54 L  76, 46 L  72, 40 L  70, 32
-            L  74, 24 L  80, 18 L  88, 14 L  98, 12 L 108, 12
-            Z
-          "
-        />
+  <div class="card">
+    <div class="card-title">📡 National Levels <button class="info-btn" onclick="openInfo('levels')">ⓘ</button></div>
+    <div class="lrow"><span class="lname">🎓 Education</span><div class="ltrack"><div class="lfill edu-col" id="lb-edu"></div></div><span class="lnum" id="ln-edu">0</span></div>
+    <div class="lrow"><span class="lname">🏗️ Infrastructure</span><div class="ltrack"><div class="lfill inf-col" id="lb-inf"></div></div><span class="lnum" id="ln-inf">0</span></div>
+    <div class="lrow"><span class="lname">💡 Technology</span><div class="ltrack"><div class="lfill tec-col" id="lb-tec"></div></div><span class="lnum" id="ln-tec">0</span></div>
+    <div class="lrow"><span class="lname">🤝 Stability</span><div class="ltrack"><div class="lfill sta-col" id="lb-sta"></div></div><span class="lnum" id="ln-sta">0</span></div>
 
-        <!-- ── MINDORO (island SW of Luzon) ── -->
-        <path class="island" d="
-          M  62,272 L  70,268 L  78,272 L  82,280 L  80,290
-          L  74,298 L  66,302 L  58,298 L  54,290 L  56,280 Z
-        "/>
+    <div id="win-wrap">
+      <div id="win-label-row"><span>🏆 Competitiveness</span><span id="win-nums">0 / 85</span></div>
+      <div id="win-track"><div id="win-fill"></div><div id="win-goal"></div></div>
+      <div id="win-caption">Reach 85 to win!</div>
+    </div>
+  </div>
 
-        <!-- ── PALAWAN (long diagonal island, SW) ── -->
-        <path class="island" d="
-          M  56,310 L  62,306 L  66,312 L  68,322 L  66,334
-          L  60,346 L  52,358 L  44,368 L  36,376 L  28,382
-          L  22,386 L  18,382 L  20,374 L  28,364 L  36,354
-          L  44,342 L  50,330 L  54,320 Z
-        "/>
-
-        <!-- ── SAMAR (easternmost Visayas) ── -->
-        <path class="island" d="
-          M 176,280 L 184,276 L 190,280 L 194,288 L 192,298
-          L 186,306 L 178,310 L 170,306 L 166,298 L 168,288 Z
-        "/>
-
-        <!-- ── LEYTE ── -->
-        <path class="island" d="
-          M 166,308 L 174,304 L 180,310 L 182,320 L 178,330
-          L 170,336 L 162,332 L 158,322 L 160,312 Z
-        "/>
-
-        <!-- ── CEBU (thin vertical island) ── -->
-        <path class="island" d="
-          M 148,300 L 154,296 L 160,300 L 162,310 L 160,322
-          L 156,330 L 150,334 L 144,328 L 142,318 L 144,308 Z
-        "/>
-
-        <!-- ── NEGROS ── -->
-        <path class="island" d="
-          M 130,298 L 138,292 L 146,296 L 150,306 L 148,318
-          L 142,328 L 134,332 L 126,326 L 122,316 L 124,306 Z
-        "/>
-
-        <!-- ── PANAY ── -->
-        <path class="island" d="
-          M 110,280 L 122,274 L 132,276 L 136,284 L 132,294
-          L 122,300 L 112,298 L 104,290 L 106,282 Z
-        "/>
-
-        <!-- ── BOHOL ── -->
-        <ellipse class="island" cx="164" cy="342" rx="12" ry="8"/>
-
-        <!-- ── MINDANAO (large southern island) ── -->
-        <path class="island" id="mindanao"
-          d="
-            M 110,356 L 120,350 L 130,348 L 140,348 L 150,350
-            L 160,354 L 168,360 L 176,366 L 182,374 L 186,382
-            L 188,392 L 188,402 L 186,412 L 182,420 L 176,428
-            L 170,436 L 162,442 L 154,446 L 144,448 L 134,448
-            L 124,446 L 114,442 L 106,436 L  98,430 L  92,422
-            L  88,414 L  86,404 L  86,394 L  88,384 L  92,374
-            L  98,366 L 104,360 Z
-          "
-        />
-
-        <!-- ── BASILAN (small island south of Zamboanga) ── -->
-        <ellipse class="island" cx="100" cy="458" rx="10" ry="6"/>
-
-        <!-- ── SULU ARCHIPELAGO (small dots SW) ── -->
-        <circle class="island" cx="84"  cy="478" r="5"/>
-        <circle class="island" cx="68"  cy="494" r="4"/>
-        <circle class="island" cx="54"  cy="508" r="4"/>
-
-        <!-- ── CAMIGUIN / small northern Mindanao islands ── -->
-        <circle class="island" cx="148" cy="348" r="4"/>
-
-        <!-- Region labels (tiny) -->
-        <text x="100" y="150" text-anchor="middle" font-size="8"
-              fill="rgba(0,229,255,0.5)" font-family="Rajdhani" font-weight="600"
-              letter-spacing="1">LUZON</text>
-        <text x="145" y="315" text-anchor="middle" font-size="7"
-              fill="rgba(0,229,255,0.4)" font-family="Rajdhani" font-weight="600"
-              letter-spacing="1">VISAYAS</text>
-        <text x="137" y="400" text-anchor="middle" font-size="7"
-              fill="rgba(0,229,255,0.4)" font-family="Rajdhani" font-weight="600"
-              letter-spacing="1">MINDANAO</text>
+  <div class="card" id="map-card">
+    <div class="card-title">🗺️ Philippines</div>
+    <div id="map-wrap">
+      <svg id="ph-map" viewBox="0 0 220 500" xmlns="http://www.w3.org/2000/svg">
+        <path class="isle active-isle" d="M108,12 L118,16 L128,22 L136,18 L144,24 L150,34 L152,44 L148,54 L142,62 L138,72 L140,82 L146,90 L150,100 L152,110 L152,120 L150,130 L146,138 L150,148 L156,158 L158,168 L154,176 L148,182 L142,188 L136,196 L132,206 L128,216 L122,224 L116,230 L110,234 L104,238 L100,246 L102,256 L106,262 L102,268 L94,268 L88,262 L82,254 L76,246 L72,238 L68,228 L64,218 L60,208 L58,198 L56,188 L56,178 L58,168 L62,158 L66,148 L66,138 L62,128 L58,118 L56,108 L56,98 L58,88 L62,78 L66,68 L70,58 L72,48 L70,38 L72,28 L80,20 L90,14 L100,12 Z"/>
+        <path class="isle" d="M62,270 L72,264 L80,268 L84,278 L82,290 L74,298 L64,296 L58,288 L60,278 Z"/>
+        <path class="isle" d="M50,308 L58,302 L64,308 L66,320 L62,334 L54,348 L44,362 L34,374 L24,382 L18,380 L18,372 L28,360 L38,346 L46,332 L50,318 Z"/>
+        <path class="isle" d="M106,278 L118,272 L130,274 L136,284 L130,296 L118,302 L106,298 L98,288 Z"/>
+        <path class="isle" d="M128,296 L138,290 L148,294 L152,306 L148,320 L140,330 L130,332 L122,326 L120,314 Z"/>
+        <path class="isle" d="M150,296 L156,292 L162,298 L162,312 L158,324 L152,330 L146,324 L146,310 Z"/>
+        <path class="isle" d="M172,276 L182,272 L190,278 L192,290 L188,302 L178,308 L168,304 L164,294 L168,282 Z"/>
+        <path class="isle" d="M162,306 L172,300 L180,306 L180,320 L174,332 L164,334 L158,326 L158,314 Z"/>
+        <ellipse class="isle" cx="162" cy="346" rx="13" ry="8"/>
+        <path class="isle active-isle" d="M98,360 L110,354 L122,350 L134,350 L146,352 L158,358 L168,364 L178,372 L184,382 L186,394 L184,406 L180,418 L172,428 L162,436 L150,442 L138,444 L126,442 L114,438 L102,430 L92,420 L86,408 L84,396 L86,384 L92,372 Z"/>
+        <ellipse class="isle" cx="98" cy="452" rx="10" ry="6"/>
+        <circle class="isle" cx="82" cy="468" r="5"/>
+        <circle class="isle" cx="66" cy="482" r="4"/>
+        <circle class="isle" cx="52" cy="496" r="4"/>
+        <text x="100" y="138" text-anchor="middle" class="map-lbl">LUZON</text>
+        <text x="142" y="308" text-anchor="middle" class="map-lbl" font-size="7">VISAYAS</text>
+        <text x="136" y="400" text-anchor="middle" class="map-lbl" font-size="7">MINDANAO</text>
       </svg>
-
-      <!-- Competitiveness overlay gauge -->
-      <div id="map-score-ring">
-        <svg viewBox="0 0 80 80">
-          <circle cx="40" cy="40" r="34" fill="none" stroke="#1a2a3a" stroke-width="7"/>
-          <circle cx="40" cy="40" r="34" fill="none" stroke="#00e5ff" stroke-width="7"
-                  stroke-dasharray="213.5" stroke-dashoffset="213.5"
-                  id="score-arc" stroke-linecap="round"
-                  transform="rotate(-90 40 40)"/>
-          <text x="40" y="44" text-anchor="middle" id="score-ring-text"
-                font-size="14" fill="#fff" font-family="Rajdhani" font-weight="700">0</text>
-        </svg>
-        <div id="score-ring-label">COMPETITIVENESS</div>
+      <div id="map-overlay">
+        <div class="mo-row"><span>Score</span><span id="mo-score">0</span></div>
+        <div class="mo-row"><span>Year</span><span id="mo-year">2025</span></div>
+        <div class="mo-row"><span>₱/person</span><span id="mo-gdpcap">—</span></div>
+        <div class="mo-row"><span>Trade</span><span id="mo-trade">—</span></div>
       </div>
     </div>
+  </div>
 
-    <!-- Key KPI Cards -->
-    <div id="kpi-grid">
-      <div class="kpi-card" data-tip="Total number of citizens in the country. Grows ~1.3% per year. Larger population means bigger labor force but also more mouths to feed.">
-        <div class="kpi-icon">👥</div>
-        <div class="kpi-body">
-          <div class="kpi-label">Population</div>
-          <div class="kpi-value" id="kpi-pop">—</div>
-        </div>
-      </div>
-      <div class="kpi-card" data-tip="Total workers currently employed across all industries. Keep this high! Unemployed workers drag down stability and create social unrest.">
-        <div class="kpi-icon">💼</div>
-        <div class="kpi-body">
-          <div class="kpi-label">Employed</div>
-          <div class="kpi-value" id="kpi-emp">—</div>
-        </div>
-      </div>
-      <div class="kpi-card warn-kpi" data-tip="⚠️ DANGER ZONE: If unemployment exceeds 25% you LOSE. Allocate enough workforce across industries to keep this low. Watch for events like Pandemics that spike unemployment.">
-        <div class="kpi-icon">⚠️</div>
-        <div class="kpi-body">
-          <div class="kpi-label">Unemployed</div>
-          <div class="kpi-value" id="kpi-unemp">—</div>
-        </div>
-      </div>
-      <div class="kpi-card" data-tip="Gross Domestic Product — total economic output in Philippine Pesos (Billions). Your main measure of economic success. Grow this by investing in education, tech, and high-productivity industries.">
-        <div class="kpi-icon">📊</div>
-        <div class="kpi-body">
-          <div class="kpi-label">GDP (₱ Billion)</div>
-          <div class="kpi-value" id="kpi-gdp">—</div>
-        </div>
-      </div>
-      <div class="kpi-card" data-tip="Government budget available this year (20% of GDP collected as tax). Spending more than you earn increases the deficit. A positive surplus pays down debt.">
-        <div class="kpi-icon">🏦</div>
-        <div class="kpi-body">
-          <div class="kpi-label">Budget (₱ B)</div>
-          <div class="kpi-value" id="kpi-budget">—</div>
-        </div>
-      </div>
-      <div class="kpi-card" data-tip="⚠️ DANGER ZONE: National debt as a % of GDP. If this exceeds 150% you LOSE (debt crisis). Green = safe, Amber = caution, Red = critical. Reduce by running budget surpluses.">
-        <div class="kpi-icon">💸</div>
-        <div class="kpi-body">
-          <div class="kpi-label">Debt (% GDP)</div>
-          <div class="kpi-value" id="kpi-debt">—</div>
-        </div>
-      </div>
-      <div class="kpi-card" data-tip="Exports minus imports in ₱ Billion. Positive = surplus (good), Negative = deficit. Move the Export Drive slider right to boost this. Trade Wars and Recessions can hurt it.">
-        <div class="kpi-icon">📦</div>
-        <div class="kpi-body">
-          <div class="kpi-label">Trade Balance</div>
-          <div class="kpi-value" id="kpi-trade">—</div>
-        </div>
-      </div>
-      <div class="kpi-card" data-tip="⚠️ DANGER ZONE: Counts consecutive years of GDP decline. If GDP shrinks 3 years in a row you LOSE (depression). Avoid by keeping investment high during tough world events.">
-        <div class="kpi-icon">📉</div>
-        <div class="kpi-body">
-          <div class="kpi-label">Neg. GDP Years</div>
-          <div class="kpi-value" id="kpi-negyr">—</div>
-        </div>
-      </div>
+</section>
+
+<!-- ═══ CENTER PANEL ═══ -->
+<section id="panel-center">
+
+  <div id="turn-banner">
+    <div><div id="turn-title">Year <span id="turn-year">2025</span> — Presidential Decisions</div><div id="turn-sub">Set priorities below, then advance the year.</div></div>
+    <button id="btn-advance" onclick="nextYear()">▶ Next Year</button>
+  </div>
+
+  <div class="card">
+    <div class="card-title">💰 Budget Allocation <button class="info-btn" onclick="openInfo('budget')">ⓘ</button></div>
+    <div class="card-desc">Available: <strong id="budget-avail">—</strong> &nbsp;|&nbsp; Spent: <strong id="budget-spent">—</strong> &nbsp;|&nbsp; Remaining: <strong id="budget-rem">—</strong></div>
+    <div id="brb-wrap"><div id="brb-fill"></div></div>
+    <div id="brb-caption" class="card-desc"></div>
+
+    <div class="bsrow">
+      <div class="bshead"><span>🎓 Education</span><span class="bsval"><span id="bv-edu">20</span> B</span></div>
+      <input type="range" min="0" max="300" step="5" value="20" id="bs-edu" oninput="onBudget()"/>
+      <div class="bsdesc">Trains smarter workers → multiplies GDP output per person</div>
     </div>
-
-  </aside>
-
-  <!-- CENTER PANEL: Controls -->
-  <section id="center-panel">
-
-    <div id="turn-header">
-      <div>
-        <div id="turn-year-big" class="section-title">YEAR <span id="year-display">2025</span></div>
-        <div id="turn-subtitle">Annual Policy Dashboard</div>
-      </div>
-      <button id="next-year-btn" onclick="nextYear()">
-        ▶ ADVANCE YEAR
-      </button>
+    <div class="bsrow">
+      <div class="bshead"><span>🏗️ Infrastructure</span><span class="bsval"><span id="bv-inf">15</span> B</span></div>
+      <input type="range" min="0" max="300" step="5" value="15" id="bs-inf" oninput="onBudget()"/>
+      <div class="bsdesc">Roads, ports, power — moves goods, lowers business costs</div>
     </div>
-
-    <!-- HUMAN CAPITAL INVESTMENTS -->
-    <div class="panel-section" id="tip-human-capital">
-      <div class="section-title">🧠 Human Capital Investment</div>
-      <div class="section-desc">Allocate budget (₱ Billion/year) to build your nation's capabilities.</div>
-
-      <div class="slider-group">
-        <label>🎓 Education Investment
-          <span class="slider-val" id="val-edu">10</span> B
-          <span class="level-badge" id="lv-edu">LV 0</span>
-          <span class="tip-icon" data-tip="Invest ₱ Billions per year in schools and universities. Higher education raises worker productivity across ALL industries. Levels decay yearly — keep investing or gains erode. Diminishing returns at high levels.">ⓘ</span>
-        </label>
-        <input type="range" min="0" max="60" value="10" id="sl-edu"
-               oninput="updateSliderLabel('sl-edu','val-edu')" />
-        <div class="progress-bar"><div class="progress-fill edu-fill" id="bar-edu"></div></div>
-      </div>
-
-      <div class="slider-group">
-        <label>🏗️ Infrastructure Investment
-          <span class="slider-val" id="val-infra">8</span> B
-          <span class="level-badge" id="lv-infra">LV 0</span>
-          <span class="tip-icon" data-tip="Build roads, ports, power grids. Infrastructure boosts output for ALL industries and is especially important for Manufacturing and Agriculture. Natural Disasters can destroy infrastructure progress.">ⓘ</span>
-        </label>
-        <input type="range" min="0" max="60" value="8" id="sl-infra"
-               oninput="updateSliderLabel('sl-infra','val-infra')" />
-        <div class="progress-bar"><div class="progress-fill infra-fill" id="bar-infra"></div></div>
-      </div>
-
-      <div class="slider-group">
-        <label>💡 Technology Investment
-          <span class="slider-val" id="val-tech">5</span> B
-          <span class="level-badge" id="lv-tech">LV 0</span>
-          <span class="tip-icon" data-tip="Fund R&D and digital infrastructure. Technology has the HIGHEST productivity multiplier — critical for unlocking the full potential of your Technology industry (₱28B/M workers). Essential for winning.">ⓘ</span>
-        </label>
-        <input type="range" min="0" max="60" value="5" id="sl-tech"
-               oninput="updateSliderLabel('sl-tech','val-tech')" />
-        <div class="progress-bar"><div class="progress-fill tech-fill" id="bar-tech"></div></div>
-      </div>
+    <div class="bsrow">
+      <div class="bshead"><span>💡 Technology &amp; BPO</span><span class="bsval"><span id="bv-tec">10</span> B</span></div>
+      <input type="range" min="0" max="300" step="5" value="10" id="bs-tec" oninput="onBudget()"/>
+      <div class="bsdesc">R&amp;D + call centers = highest-paying jobs &amp; exports</div>
     </div>
-
-    <!-- WORKFORCE ALLOCATION -->
-    <div class="panel-section" id="tip-workforce">
-      <div class="section-title">👷 Workforce Allocation (%)
-        <span class="tip-icon" data-tip="Distribute your total labor force across 7 industries. Each worker produces GDP based on their industry's output rate. Technology pays the most (₱28B/M workers). Agriculture employs the most people. Total should equal 100% — any surplus auto-goes to Services.">ⓘ</span>
-      </div>
-      <div class="section-desc">Distribute your labor force across industries. Total must equal 100%.</div>
-
-      <div id="industry-sliders"></div>
-      <div id="alloc-warning" class="alloc-warn hidden">⚠ Allocation ≠ 100% — difference applied to Services</div>
+    <div class="bsrow">
+      <div class="bshead"><span>🏥 Social Services</span><span class="bsval"><span id="bv-soc">15</span> B</span></div>
+      <input type="range" min="0" max="300" step="5" value="15" id="bs-soc" oninput="onBudget()"/>
+      <div class="bsdesc">Healthcare &amp; welfare → reduces unrest, keeps people productive</div>
     </div>
+  </div>
 
-    <!-- TRADE POLICY -->
-    <div class="panel-section" id="tip-trade-fiscal">
-      <div class="section-title">🌍 Trade & Fiscal Policy</div>
+  <div class="card">
+    <div class="card-title">🎛️ Economic Policy <button class="info-btn" onclick="openInfo('levers')">ⓘ</button></div>
 
-      <div class="slider-group">
-        <label>📤 Export Drive (0 = Autarky, 100 = Open)
-          <span class="slider-val" id="val-export">50</span>
-          <span class="tip-icon" data-tip="How aggressively you pursue exports. Higher = better trade balance (earns foreign ₱) but also more exposure to Trade Wars and global recessions. Balance this against your Tech and Manufacturing levels.">ⓘ</span>
-        </label>
-        <input type="range" min="0" max="100" value="50" id="sl-export"
-               oninput="updateSliderLabel('sl-export','val-export')" />
-      </div>
-
-      <div class="slider-group">
-        <label>💰 Government Spending (% of budget)
-          <span class="slider-val" id="val-gov">40</span>%
-          <span class="tip-icon" data-tip="What % of your tax revenue the government spends on services and programs. Higher spending improves stability but reduces the surplus available to pay down debt. Keep debt below 80% of GDP for safety.">ⓘ</span>
-        </label>
-        <input type="range" min="10" max="90" value="40" id="sl-gov"
-               oninput="updateSliderLabel('sl-gov','val-gov')" />
-      </div>
+    <div class="lev-row">
+      <div class="lev-head"><span>📤 Trade Openness</span><span class="lev-val" id="lv-exp">Medium</span></div>
+      <input type="range" min="0" max="4" step="1" value="2" id="ls-exp" oninput="onLevers()"/>
+      <div class="lev-scale"><span>Protectionist</span><span>Open Market</span></div>
     </div>
-
-    <!-- BOTTOM LEVEL BARS -->
-    <div class="panel-section" id="tip-national-levels">
-      <div class="section-title">📡 National Levels</div>
-      <div id="level-bars">
-        <div class="level-row">
-          <span class="level-name">Education</span>
-          <div class="level-track"><div class="level-fill edu-fill" id="lvbar-edu"></div></div>
-          <span class="level-num" id="lvnum-edu">0</span>
-        </div>
-        <div class="level-row">
-          <span class="level-name">Infrastructure</span>
-          <div class="level-track"><div class="level-fill infra-fill" id="lvbar-infra"></div></div>
-          <span class="level-num" id="lvnum-infra">0</span>
-        </div>
-        <div class="level-row">
-          <span class="level-name">Technology</span>
-          <div class="level-track"><div class="level-fill tech-fill" id="lvbar-tech"></div></div>
-          <span class="level-num" id="lvnum-tech">0</span>
-        </div>
-        <div class="level-row">
-          <span class="level-name">Stability</span>
-          <div class="level-track"><div class="level-fill stab-fill" id="lvbar-stab"></div></div>
-          <span class="level-num" id="lvnum-stab">0</span>
-        </div>
-      </div>
+    <div class="lev-row">
+      <div class="lev-head"><span>✈️ OFW Policy</span><span class="lev-val" id="lv-ofw">Balanced</span></div>
+      <input type="range" min="0" max="4" step="1" value="2" id="ls-ofw" oninput="onLevers()"/>
+      <div class="lev-scale"><span>Keep at Home</span><span>Deploy Abroad</span></div>
     </div>
-
-  </section>
-
-  <!-- RIGHT PANEL: Log + Events -->
-  <aside id="right-panel">
-
-    <div class="panel-section" id="event-box">
-      <div class="section-title">🌐 World Event</div>
-      <div id="event-name" class="event-name">—</div>
-      <div id="event-desc" class="event-desc">Press "Advance Year" to start simulation.</div>
-      <div id="event-effect" class="event-effect"></div>
+    <div class="lev-row">
+      <div class="lev-head"><span>🏭 Industry Focus</span><span class="lev-val" id="lv-ind">Mixed</span></div>
+      <input type="range" min="0" max="4" step="1" value="2" id="ls-ind" oninput="onLevers()"/>
+      <div class="lev-scale"><span>Agriculture</span><span>Tech / BPO</span></div>
     </div>
+  </div>
 
-    <div class="panel-section" id="report-box">
-      <div class="section-title">📋 Annual Report</div>
-      <div id="report-content">
-        <p class="report-placeholder">Your annual economic summary will appear here after each turn.</p>
-      </div>
+  <div class="card" id="event-card">
+    <div class="card-title">🌐 World Event</div>
+    <div id="ev-name">—</div>
+    <div id="ev-desc" class="card-desc">Advance the year to see this year's global event.</div>
+    <div id="ev-effect"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">📋 Presidential Report</div>
+    <div id="report-body"><p class="card-desc">Your annual report will appear here after each turn.</p></div>
+  </div>
+
+</section>
+
+<!-- ═══ RIGHT PANEL ═══ -->
+<section id="panel-right">
+
+  <div class="card" id="advisor-card">
+    <div class="card-title">🤵 Presidential Advisor</div>
+    <div id="advisor-msg">Welcome, Mr./Ms. President. The Philippines needs your leadership. Start by setting your budget priorities and pressing ▶ Next Year.</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">🚨 Danger Meters</div>
+    <div class="danger-row">
+      <span class="dlabel">Unemployment</span>
+      <div class="dtrack"><div class="dfill uf" id="d-unemp"></div></div>
+      <span class="dnum" id="dn-unemp">—</span>
+      <span class="dlim">max 25%</span>
     </div>
-
-    <div class="panel-section" id="log-box">
-      <div class="section-title">📜 History Log</div>
-      <div id="log-list"></div>
+    <div class="danger-row">
+      <span class="dlabel">Debt / GDP</span>
+      <div class="dtrack"><div class="dfill df" id="d-debt"></div></div>
+      <span class="dnum" id="dn-debt">—</span>
+      <span class="dlim">max 150%</span>
     </div>
+    <div class="danger-row">
+      <span class="dlabel">GDP Shrinking</span>
+      <div class="dtrack"><div class="dfill nf" id="d-neg"></div></div>
+      <span class="dnum" id="dn-neg">—</span>
+      <span class="dlim">max 3 yrs</span>
+    </div>
+    <div id="danger-note">Any of these hitting the limit = Game Over</div>
+  </div>
 
-  </aside>
+  <div class="card">
+    <div class="card-title">📜 History</div>
+    <div id="log-body"></div>
+  </div>
+
+</section>
 
 </main>
 
-<!-- ═══════════════════════════════════════════════════
-     MODAL (Win / Lose / Event)
-═══════════════════════════════════════════════════ -->
-<div id="modal-overlay" class="hidden">
-  <div id="modal-card">
-    <div id="modal-icon">🏆</div>
-    <div id="modal-title">Victory!</div>
-    <div id="modal-body">You have built a globally competitive nation.</div>
-    <button id="modal-btn" onclick="resetGame()">PLAY AGAIN</button>
+<!-- WIN/LOSE MODAL -->
+<div id="end-overlay" class="hidden">
+  <div id="end-card">
+    <div id="end-icon">🏆</div>
+    <div id="end-title">—</div>
+    <div id="end-body">—</div>
+    <button id="end-btn" onclick="resetGame()">Play Again</button>
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════════════
-     HOW TO PLAY GUIDE MODAL
-═══════════════════════════════════════════════════ -->
-<div id="guide-overlay" class="hidden">
+<!-- GUIDE MODAL -->
+<div id="guide-overlay" class="hidden" onclick="if(event.target===this)closeGuide()">
   <div id="guide-card">
-    <button id="guide-close" onclick="closeGuide()">✕ Close</button>
-    <div id="guide-header">
-      <div id="guide-icon">🌏</div>
-      <div>
-        <div id="guide-title">How to Play</div>
-        <div id="guide-subtitle">Geo-Economics Simulator — Quick Guide</div>
-      </div>
+    <div id="guide-hdr">
+      <div id="guide-title">📖 How to Play</div>
+      <button class="close-btn" onclick="closeGuide()">✕</button>
     </div>
-
-    <div class="guide-tabs">
+    <div class="gtabs">
       <button class="gtab active" onclick="showTab('basics',this)">🎯 Basics</button>
-      <button class="gtab" onclick="showTab('controls',this)">🎛️ Controls</button>
-      <button class="gtab" onclick="showTab('economy',this)">📊 Economy</button>
-      <button class="gtab" onclick="showTab('winning',this)">🏆 Winning</button>
+      <button class="gtab" onclick="showTab('budget',this)">💰 Budget</button>
+      <button class="gtab" onclick="showTab('levers',this)">🎛️ Levers</button>
+      <button class="gtab" onclick="showTab('win',this)">🏆 Win/Lose</button>
+      <button class="gtab" onclick="showTab('ph',this)">🇵🇭 PH Facts</button>
     </div>
-
-    <!-- TAB: BASICS -->
-    <div class="guide-tab-content active" id="tab-basics">
-      <div class="guide-section">
-        <div class="guide-section-title">🌍 The Big Picture</div>
-        <p>You are the leader of the <strong>Philippines</strong>. Each click of <em>▶ Advance Year</em> simulates one year of economic policy. Your goal is to transform the Philippines into a globally competitive nation.</p>
+    <div class="gtab-content active" id="tab-basics">
+      <h3>What is this game?</h3>
+      <p>You are the President of the Philippines. Each turn = 1 year in office. You decide where to spend the budget and what economic policies to follow. The economy responds — sometimes with good news, sometimes with a crisis.</p>
+      <h3>Your Goal</h3>
+      <p>Reach a <strong>Competitiveness Score of 85</strong> — making the Philippines a world-class economy. This score reflects GDP per person, education, infrastructure, technology, and stability.</p>
+      <h3>Each Turn</h3>
+      <div class="steps">
+        <div class="step"><span class="sn">1</span><span>Allocate your budget across Education, Infrastructure, Technology, Social Services</span></div>
+        <div class="step"><span class="sn">2</span><span>Set your policy levers: how open is trade? How many OFWs to deploy? What industry to focus on?</span></div>
+        <div class="step"><span class="sn">3</span><span>Press ▶ Next Year — a global event fires (recession? boom? disaster?)</span></div>
+        <div class="step"><span class="sn">4</span><span>Read your Presidential Report and your Advisor's tip</span></div>
+        <div class="step"><span class="sn">5</span><span>Adjust strategy and repeat</span></div>
       </div>
-      <div class="guide-section">
-        <div class="guide-section-title">🔄 Each Turn, This Happens:</div>
-        <div class="guide-steps">
-          <div class="guide-step"><span class="step-num">1</span><span>You set your sliders (investments, workforce, trade)</span></div>
-          <div class="guide-step"><span class="step-num">2</span><span>A random <strong>World Event</strong> hits (recession, boom, disaster…)</span></div>
-          <div class="guide-step"><span class="step-num">3</span><span>GDP is calculated from your workers × productivity multipliers</span></div>
-          <div class="guide-step"><span class="step-num">4</span><span>Budget, debt, and competitiveness are updated</span></div>
-          <div class="guide-step"><span class="step-num">5</span><span>The Annual Report summarises what happened</span></div>
-        </div>
-      </div>
-      <div class="guide-section">
-        <div class="guide-section-title">🗺️ The Map</div>
-        <p>The left panel shows the Philippines map with its major island groups — <strong>Luzon</strong> (north), <strong>Visayas</strong> (centre), and <strong>Mindanao</strong> (south). The ring below the map shows your current <strong>Competitiveness Score</strong> — fill it to 85 to win!</p>
-      </div>
-    </div>
-
-    <!-- TAB: CONTROLS -->
-    <div class="guide-tab-content" id="tab-controls">
-      <div class="guide-section">
-        <div class="guide-section-title">🧠 Human Capital Sliders</div>
-        <div class="guide-control-row">
-          <span class="gc-icon edu-col">🎓</span>
-          <div><strong>Education</strong> — Raises worker productivity across all industries. Invest at least ₱10–20B/year to grow steadily.</div>
-        </div>
-        <div class="guide-control-row">
-          <span class="gc-icon infra-col">🏗️</span>
-          <div><strong>Infrastructure</strong> — Boosts output especially for Manufacturing and Agriculture. Critical after Natural Disasters.</div>
-        </div>
-        <div class="guide-control-row">
-          <span class="gc-icon tech-col">💡</span>
-          <div><strong>Technology</strong> — Highest productivity multiplier. Essential to make your Tech Industry competitive and win.</div>
-        </div>
-        <p class="guide-note">⚠️ Levels <strong>decay slightly each year</strong>. You must keep investing or your gains erode!</p>
-      </div>
-      <div class="guide-section">
-        <div class="guide-section-title">👷 Workforce Allocation</div>
-        <p>Split your labor force (%) across 7 industries. The sliders must total 100%. Any mismatch auto-corrects to Services.</p>
-        <div class="guide-industry-table">
-          <div class="git-row header"><span>Industry</span><span>₱ per 1M Workers</span><span>Best For</span></div>
-          <div class="git-row"><span>🌾 Agriculture</span><span>₱4.5B</span><span>Employment base</span></div>
-          <div class="git-row"><span>🏭 Manufacturing</span><span>₱12B</span><span>Mid-tier GDP</span></div>
-          <div class="git-row"><span>🛒 Services</span><span>₱9B</span><span>Largest employer</span></div>
-          <div class="git-row highlight"><span>💻 Technology</span><span>₱28B ⭐</span><span>Win condition!</span></div>
-          <div class="git-row"><span>🏛️ Government</span><span>₱5B</span><span>Stability anchor</span></div>
-          <div class="git-row"><span>🎓 Education</span><span>₱4B</span><span>Level growth</span></div>
-          <div class="git-row"><span>🔧 Infrastructure</span><span>₱7B</span><span>Productivity boost</span></div>
-        </div>
-      </div>
-      <div class="guide-section">
-        <div class="guide-section-title">🌍 Trade & Fiscal</div>
-        <div class="guide-control-row">
-          <span class="gc-icon">📤</span>
-          <div><strong>Export Drive</strong> — Higher = better trade balance, more foreign income, but more exposure to global shocks.</div>
-        </div>
-        <div class="guide-control-row">
-          <span class="gc-icon">💰</span>
-          <div><strong>Gov. Spending</strong> — Higher = more stability but less surplus to pay down debt. Balance carefully.</div>
-        </div>
+      <h3>The Dashboard</h3>
+      <div class="ftable">
+        <div class="frow"><b>👥 Population</b><span>Total Filipinos, grows ~1.6%/year</span></div>
+        <div class="frow"><b>💼 Domestic Workers</b><span>Employed inside the country</span></div>
+        <div class="frow"><b>✈️ OFWs Abroad</b><span>Overseas workers who send money home</span></div>
+        <div class="frow"><b>💵 Remittances</b><span>Money OFWs send home — adds to GDP</span></div>
+        <div class="frow"><b>📊 GDP</b><span>Total economic output in ₱ Billions</span></div>
+        <div class="frow"><b>💸 Debt %</b><span>Government debt vs GDP — keep below 150%</span></div>
       </div>
     </div>
-
-    <!-- TAB: ECONOMY -->
-    <div class="guide-tab-content" id="tab-economy">
-      <div class="guide-section">
-        <div class="guide-section-title">📊 How GDP is Calculated</div>
-        <p>Each industry contributes: <code>Workers (millions) × Output Rate × Productivity Multiplier</code></p>
-        <p>The <strong>Productivity Multiplier</strong> grows with your Education, Infrastructure, and Technology levels. At level 50 in all three, your workers produce roughly <strong>twice as much</strong> as at level 0.</p>
+    <div class="gtab-content" id="tab-budget">
+      <h3>💰 Budget Allocation</h3>
+      <p>Each year the government collects ~17% of GDP as taxes. You decide how to spend it. The bar at the top shows how much is left — go into the red and debt increases.</p>
+      <div class="ftable">
+        <div class="frow"><b>🎓 Education</b><span>Raises Education Level → every worker produces more. Slow payoff but compounds. Invest early and heavily.</span></div>
+        <div class="frow"><b>🏗️ Infrastructure</b><span>Roads, ports, power. Faster business movement, lower costs. Levels decay — need constant investment. Critical after disasters.</span></div>
+        <div class="frow"><b>💡 Technology</b><span>BPO, R&amp;D, digital. Highest GDP per worker. Needs Education Level 40+ to work well. Push hard in mid-game.</span></div>
+        <div class="frow"><b>🏥 Social Services</b><span>Healthcare, welfare, housing. Keeps Stability high. Low social spending = unrest = lower productivity = GDP drop.</span></div>
       </div>
-      <div class="guide-section">
-        <div class="guide-section-title">🏆 Competitiveness Score</div>
-        <p>Calculated from four sources (max 100):</p>
-        <div class="guide-score-breakdown">
-          <div class="gsb-row"><span>GDP per capita</span><span class="gsb-pts">up to 40 pts</span></div>
-          <div class="gsb-row"><span>Edu + Infra + Tech levels</span><span class="gsb-pts">up to 40 pts</span></div>
-          <div class="gsb-row"><span>Trade balance</span><span class="gsb-pts">up to 10 pts</span></div>
-          <div class="gsb-row"><span>Stability</span><span class="gsb-pts">up to 10 pts</span></div>
-        </div>
-        <p class="guide-note">Reach <strong>85+</strong> to win the game!</p>
-      </div>
-      <div class="guide-section">
-        <div class="guide-section-title">💸 Budget & Debt</div>
-        <p>Each year the government collects <strong>20% of GDP as tax</strong>. Your investments and gov. spending come out of this. Spend more than you earn → debt rises. Run a surplus → debt falls.</p>
-        <p class="guide-note">⚠️ Debt above <strong>80% GDP</strong> hurts stability. Above <strong>150%</strong> = game over!</p>
-      </div>
-      <div class="guide-section">
-        <div class="guide-section-title">🌐 World Events</div>
-        <p>Every year one random event hits. Some are beneficial (Tech Boom, Tourism Surge), some are harmful (Recession, Pandemic, Disaster). You can't choose events — build resilience by keeping high stability and diversified investment.</p>
-      </div>
+      <div class="tip-box">💡 Strategy: Year 1–5 focus on Education + Infrastructure. Year 6+ add Technology. Always keep Social Services at ₱10B minimum.</div>
     </div>
-
-    <!-- TAB: WINNING -->
-    <div class="guide-tab-content" id="tab-winning">
-      <div class="guide-section">
-        <div class="guide-section-title">🏆 How to Win</div>
-        <p>Reach a <strong>Competitiveness Score of 85+</strong>. This typically takes 15–25 turns of disciplined investment.</p>
-        <div class="guide-steps">
-          <div class="guide-step"><span class="step-num">1</span><span>Invest heavily in <strong>Technology</strong> — it has the best ROI for score</span></div>
-          <div class="guide-step"><span class="step-num">2</span><span>Shift workforce toward <strong>Technology</strong> industry as levels rise</span></div>
-          <div class="guide-step"><span class="step-num">3</span><span>Keep <strong>Education</strong> high — it multiplies every worker's productivity</span></div>
-          <div class="guide-step"><span class="step-num">4</span><span>Maintain a small <strong>budget surplus</strong> to keep debt manageable</span></div>
-          <div class="guide-step"><span class="step-num">5</span><span>Keep <strong>Export Drive</strong> at 60–80% for a healthy trade balance</span></div>
-        </div>
+    <div class="gtab-content" id="tab-levers">
+      <h3>🎛️ Economic Levers</h3>
+      <p>These are big-picture policy positions with trade-offs — not exact numbers.</p>
+      <div class="ftable">
+        <div class="frow"><b>📤 Trade Openness</b><span>Open = more exports, higher GDP, but exposed to Trade Wars. Protectionist = safe but slow growth. Best: Level 2–3.</span></div>
+        <div class="frow"><b>✈️ OFW Policy</b><span>Deploy = big remittance income, reduces domestic unemployment. But maxing it causes Brain Drain. Best: Level 2–3, drop to 1 after Brain Drain events.</span></div>
+        <div class="frow"><b>🏭 Industry Focus</b><span>Agriculture = many jobs, low pay. Tech/BPO = fewer jobs, very high pay. Shift from 1–2 early to 3–4 once Education Level hits 50+.</span></div>
       </div>
-      <div class="guide-section">
-        <div class="guide-section-title">💀 How to Lose</div>
-        <div class="guide-lose-rows">
-          <div class="lose-row"><span class="lose-icon">⚠️</span><div><strong>Unemployment &gt; 25%</strong> — Don't leave workers unallocated! Always fill your workforce sliders to 100%.</div></div>
-          <div class="lose-row"><span class="lose-icon">💸</span><div><strong>Debt &gt; 150% GDP</strong> — Avoid overspending. Lower gov. spending % during crises.</div></div>
-          <div class="lose-row"><span class="lose-icon">📉</span><div><strong>3 consecutive GDP declines</strong> — Keep investing even during recessions. Don't slash all budgets at once.</div></div>
-        </div>
-      </div>
-      <div class="guide-section">
-        <div class="guide-section-title">💡 Pro Tips</div>
-        <p>• After a <strong>Natural Disaster</strong>, pour extra ₱ into Infrastructure that year.</p>
-        <p>• A <strong>Pandemic</strong> turn: reduce gov. spending to avoid debt spike — redirect to Tech to maintain score.</p>
-        <p>• <strong>Brain Drain</strong> events hurt Tech workers — keep Tech investment high to offset.</p>
-        <p>• The <strong>Annual Report</strong> on the right panel tells you exactly what's happening each year — read it!</p>
-      </div>
+      <div class="tip-box">💡 No lever is "always best" — adjust based on the event that just hit.</div>
     </div>
-
+    <div class="gtab-content" id="tab-win">
+      <h3>🏆 Win Condition</h3>
+      <p>Reach <strong>Competitiveness Score = 85</strong>. Score comes from:</p>
+      <div class="ftable">
+        <div class="frow"><b>GDP per capita</b><span>Up to 40 pts — grow GDP faster than population</span></div>
+        <div class="frow"><b>Education + Infra + Tech</b><span>Up to 40 pts — invest consistently</span></div>
+        <div class="frow"><b>Trade Balance</b><span>Up to 10 pts — exports &gt; imports</span></div>
+        <div class="frow"><b>Stability</b><span>Up to 10 pts — low unemployment, manageable debt</span></div>
+      </div>
+      <h3>💀 Lose Conditions</h3>
+      <div class="ftable danger-t">
+        <div class="frow"><b>⚠️ Unemployment &gt; 25%</b><span>Don't cut Social Services; check OFW and Industry Focus</span></div>
+        <div class="frow"><b>💸 Debt &gt; 150% GDP</b><span>Cut ALL budget sliders during Recession / Pandemic years</span></div>
+        <div class="frow"><b>📉 3 straight GDP declines</b><span>Never cut Education to zero — it keeps GDP alive</span></div>
+      </div>
+      <div class="tip-box">💡 Best path to win: High Education → High Tech → shift Industry Focus to Tech/BPO → exports surge → score climbs.</div>
+    </div>
+    <div class="gtab-content" id="tab-ph">
+      <h3>🇵🇭 Real Philippines — 2025 Starting Data</h3>
+      <div class="ftable">
+        <div class="frow"><b>Population</b><span>~118 million people</span></div>
+        <div class="frow"><b>Domestic labor force</b><span>~50 million workers</span></div>
+        <div class="frow"><b>OFWs abroad</b><span>~10.6 million overseas workers</span></div>
+        <div class="frow"><b>OFW Remittances</b><span>~₱1.8 Trillion/year (record 2024)</span></div>
+        <div class="frow"><b>GDP</b><span>~₱26 Trillion (2024)</span></div>
+        <div class="frow"><b>Unemployment rate</b><span>~4.5% (2024)</span></div>
+        <div class="frow"><b>Debt / GDP</b><span>~60% (2024)</span></div>
+        <div class="frow"><b>Gov Budget</b><span>~₱5.7 Trillion (2024)</span></div>
+      </div>
+      <h3>What is OFW Remittance?</h3>
+      <p>Overseas Filipino Workers send money back home every month. In 2024 this hit a record <strong>$38 billion USD</strong> (~₱2.1 Trillion). This money directly boosts household spending, savings, and GDP. The Philippines depends on this more than almost any other country in the world.</p>
+      <h3>What is BPO?</h3>
+      <p>Business Process Outsourcing — call centers, IT services, accounting, and back-office work done for foreign companies from the Philippines. The PH is the global #2 BPO hub, employing ~1.7 million Filipinos at above-average wages. Your Technology budget grows this sector.</p>
+      <h3>Why does this matter?</h3>
+      <p>The game simulates real economic tradeoffs the Philippines faces: how much to invest in education vs short-term employment? Should we encourage OFW deployment or build local industries? How do we compete with Vietnam and Indonesia on manufacturing? These are real presidential decisions.</p>
+    </div>
   </div>
 </div>
 
-<!-- Floating Tooltip -->
-<div id="tooltip-box"></div>
+<!-- INFO MODAL (ⓘ buttons) -->
+<div id="info-overlay" class="hidden" onclick="if(event.target===this)closeInfo()">
+  <div id="info-card">
+    <div id="info-hdr"><div id="info-title">Info</div><button class="close-btn" onclick="closeInfo()">✕</button></div>
+    <div id="info-body">—</div>
+  </div>
+</div>
 
 <script src="script.js"></script>
 </body>
